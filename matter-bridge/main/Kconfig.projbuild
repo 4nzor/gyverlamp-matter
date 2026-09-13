@@ -21,6 +21,6 @@ config GYVER_UDP_PORT
 
 config GYVER_MODE_AMOUNT
     int "Gyver effect count"
-    default 93
+    default 94
 
 endmenu

@@ -9670,3 +9670,105 @@ void gravityRoutine() {
   blurScreen(15U);
   hue = (hue + 1U) % 256U;
 }
+
+// ============= Эффект Факториал ===============
+// Кольца из n! точек (1,2,6,24,120…). Скачок n → «взрыв» кратности.
+// Speed — темп смены n и вращение; Scale — макс. n и оттенок.
+
+static void factorialDrawRing(uint8_t nn, float briMul, float radMul, float cx, float cy, float rot, uint8_t baseHue)
+{
+  static const uint16_t FACT[] = { 1U, 1U, 2U, 6U, 24U, 120U, 720U, 5040U };
+  if (nn < 1U) nn = 1U;
+  if (nn > 7U) nn = 7U;
+  const uint16_t cnt = FACT[nn];
+  uint16_t drawN = cnt;
+  if (drawN > NUM_LEDS) {
+    drawN = NUM_LEDS;
+  }
+  const float rBase = radMul * (1.2F + (float)nn * 0.95F);
+  const float petal = (nn > 1U) ? (float)FACT[nn - 1U] : 1.0F;
+
+  for (uint16_t k = 0U; k < drawN; k++) {
+    WDT_FEED();
+    const float kk = (cnt <= drawN) ? (float)k : ((float)k * (float)cnt / (float)drawN);
+    const float ang = rot + (TWO_PI * kk / (float)cnt);
+    const float rose = 1.0F + 0.22F * cos(ang * petal);
+    const float x = cx + cos(ang) * rBase * rose;
+    const float y = cy + sin(ang) * rBase * rose;
+    const uint8_t h = (uint8_t)(baseHue + nn * 28U + (uint8_t)(k * 2U));
+    uint16_t bri = (uint16_t)(200.0F * briMul);
+    if (bri > 255U) bri = 255U;
+    if (cnt <= 24U) {
+      bri = (bri * 5U) / 4U;
+      if (bri > 255U) bri = 255U;
+    }
+    drawPixelXYF(x, y, CHSV(h, (cnt < 30U) ? 230U : 200U, (uint8_t)bri));
+  }
+}
+
+void factorialRoutine()
+{
+  static float phase = 0.0F;
+  static uint8_t prevN = 1U;
+
+  if (loadingFlag) {
+    #if defined(USE_RANDOM_SETS_IN_APP) || defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+      if (selectedSettings) {
+        setModeSettings(40U + random8(160U), 80U + random8(140U));
+      }
+    #endif
+    loadingFlag = false;
+    FastLED.clear();
+    phase = 0.0F;
+    prevN = 1U;
+  }
+
+  WDT_FEED();
+
+  const uint8_t fade = (uint8_t)(12U + (255U - modes[currentMode].Speed) / 12U);
+  fadeToBlackBy(leds, NUM_LEDS, fade);
+
+  const uint8_t maxN = (uint8_t)map8(modes[currentMode].Scale, 3U, 7U); // 3..7
+  const float dt = (0.08F + (float)modes[currentMode].Speed / 420.0F);
+  phase += dt;
+  if (phase >= (float)maxN) {
+    phase -= (float)maxN;
+  }
+
+  const uint8_t n = (uint8_t)phase + 1U;
+  const float frac = phase - (float)((uint8_t)phase);
+  const bool jumped = (n != prevN);
+  prevN = n;
+
+  const float cx = ((float)WIDTH - 1.0F) * 0.5F;
+  const float cy = ((float)HEIGHT - 1.0F) * 0.5F;
+  const float rot = millis() * (0.0004F + (float)modes[currentMode].Speed * 0.000008F) * (0.6F + (float)n * 0.25F);
+  const uint8_t baseHue = (uint8_t)(modes[currentMode].Scale * 2U);
+
+  if (jumped) {
+    for (int8_t dx = -1; dx <= 1; dx++) {
+      for (int8_t dy = -1; dy <= 1; dy++) {
+        int16_t x = (int16_t)(cx + dx);
+        int16_t y = (int16_t)(cy + dy);
+        if (x >= 0 && x < (int16_t)WIDTH && y >= 0 && y < (int16_t)HEIGHT) {
+          leds[XY((uint8_t)x, (uint8_t)y)] += CHSV((uint8_t)(baseHue + n * 30U), 180U, 255U);
+        }
+      }
+    }
+  }
+
+  factorialDrawRing(n, 1.0F - frac * 0.35F, 1.0F, cx, cy, rot, baseHue);
+  if (n < maxN) {
+    factorialDrawRing((uint8_t)(n + 1U), 0.25F + frac * 0.85F, 0.65F + frac * 0.45F, cx, cy, rot, baseHue);
+  }
+
+  {
+    const float stir = (float)n * log((float)n + 0.5F) - (float)n; // ~ ln(n!)
+    int glowI = (int)(40.0F + stir * 8.0F);
+    if (glowI < 30) glowI = 30;
+    if (glowI > 120) glowI = 120;
+    drawPixelXYF(cx, cy, CHSV((uint8_t)(baseHue + 90U), 160U, (uint8_t)glowI));
+  }
+
+  blurScreen(jumped ? 40U : 18U);
+}

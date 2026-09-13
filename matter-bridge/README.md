@@ -1,5 +1,7 @@
 # ESP-Matter GyverLamp Bridge
 
+**Язык:** **Русский** | [English](README.en.md)
+
 Matter Extended Color Light → GyverLamp UDP `:8888`.
 
 ## Prerequisites
@@ -13,7 +15,7 @@ Matter Extended Color Light → GyverLamp UDP `:8888`.
 
 ## Configure
 
-Wi‑Fi лампы — из корневого `secrets.env` (см. README репо). Для моста Алиса сама провиженит STA.
+Wi‑Fi лампы — из корневого `secrets.env` (см. README репо). Для моста STA обычно провиженит **Алиса** или **Apple Home** при Matter-pairing.
 
 `idf.py menuconfig` → **Gyver Bridge** (статус-LED GPIO).
 
@@ -42,7 +44,7 @@ idf.py -p /dev/cu.usbmodemXXXX build flash monitor
 
 Первая сборка тянет `esp_matter` из Component Registry (долго).
 
-Обычный `flash` **без** `erase-flash` сохраняет Matter fabric / Wi‑Fi Алисы.
+Обычный `flash` **без** `erase-flash` сохраняет Matter fabric / Wi‑Fi контроллера.
 
 ## Host unit tests
 
@@ -50,10 +52,11 @@ idf.py -p /dev/cu.usbmodemXXXX build flash monitor
 cd host_tests && make
 ```
 
-## Alice
+## Alice / Apple Home
 
 - QR: [`matter-qr.png`](matter-qr.png)
 - Payload: `MT:Y.K9042C00KA0648G00`
 - Manual: **3497-011-2332** (PIN **20202021**)
 
-Сцены (цвет+яркость → EFF): [`ALICE_SCENES.md`](ALICE_SCENES.md).
+Поддерживаются **Яндекс Алиса** и **Apple Home** (Matter; для Apple нужен домашний хаб).  
+Сцены (цвет+яркость → EFF): [`ALICE_SCENES.md`](ALICE_SCENES.md) · [EN](ALICE_SCENES.en.md).
