@@ -1,0 +1,6 @@
+Matter setup QR
+Payload: MT:Y.K9042C00KA0648G00
+Manual pairing code: 34970112332
+Passcode: 20202021
+Discriminator: 3840
+VID: 0xFFF1  PID: 0x8000

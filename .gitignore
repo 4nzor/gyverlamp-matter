@@ -1,0 +1,15 @@
+.DS_Store
+.idea/
+**/build/
+**/managed_components/
+**/dependencies.lock
+**/sdkconfig
+**/sdkconfig.old
+**/host_tests/test_gyver_map
+**/*.dSYM/
+
+# Wi‑Fi secrets (never commit)
+secrets.env
+lamp/gunner47_v2.87in1/wifi_secrets.h
+matter-bridge/sdkconfig.secrets
+

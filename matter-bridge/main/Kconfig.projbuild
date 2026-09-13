@@ -1,0 +1,26 @@
+menu "Gyver Bridge"
+
+config GYVER_WIFI_SSID
+    string "WiFi SSID"
+    default ""
+
+config GYVER_WIFI_PASSWORD
+    string "WiFi password"
+    default ""
+
+config STATUS_LED_GPIO
+    int "Status WS2812 GPIO"
+    default 48
+    range 0 48
+    help
+        ESP32-S3 Super Mini onboard RGB is often GPIO48; change if silkscreen differs.
+
+config GYVER_UDP_PORT
+    int "GyverLamp UDP port"
+    default 8888
+
+config GYVER_MODE_AMOUNT
+    int "Gyver effect count"
+    default 93
+
+endmenu
