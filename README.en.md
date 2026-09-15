@@ -2,6 +2,17 @@
 
 [Русский](README.md)
 
+[![Matter](https://img.shields.io/badge/Matter-000000?style=flat-square&logo=matter&logoColor=white)](https://csa-iot.org/all-solutions/matter/)
+[![Yandex Alice](https://img.shields.io/badge/Yandex%20Alice-FC3F1D?style=flat-square)](https://alice.yandex.ru/)
+[![Apple Home](https://img.shields.io/badge/Apple%20Home-000000?style=flat-square&logo=apple&logoColor=white)](https://www.apple.com/home-app/)
+[![ESP32‑C6](https://img.shields.io/badge/ESP32--C6-bridge-E7352C?style=flat-square&logo=espressif&logoColor=white)](https://www.espressif.com/en/products/socs/esp32-c6)
+[![ESP32‑C3](https://img.shields.io/badge/ESP32--C3-lamp-E7352C?style=flat-square&logo=espressif&logoColor=white)](https://www.espressif.com/en/products/socs/esp32-c3)
+[![Tasmota](https://img.shields.io/badge/Tasmota-bridge-1FA3EC?style=flat-square)](https://tasmota.github.io/docs/)
+[![esp‑matter](https://img.shields.io/badge/esp--matter-ESP--IDF-00325B?style=flat-square)](https://github.com/espressif/esp-matter)
+![UDP](https://img.shields.io/badge/UDP-:8888-2EA44F?style=flat-square)
+[![gunner47](https://img.shields.io/badge/gunner47-GyverLamp-6E40C9?style=flat-square)](lamp/gunner47_v2.87in1/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
+
 Control a Gyver lamp from **Yandex Alice** and **Apple Home** over Matter — no Home Assistant.  
 An ESP32‑C6/S3 bridge talks to the lamp on UDP `:8888`. Lamp firmware is **gunner47**.
 
