@@ -39,6 +39,10 @@
 
 Wi‑Fi для моста обычно приходит при pairing — не прописывай CHIP `DEFAULT_WIFI_*` вручную.
 
+### Транспорт лампы: UDP или WebSocket
+
+> Транспорт команд лампы — `LAMP_NET_MODE` в `lamp/gunner47_v2.87in1/Constants.h`. В этом дереве стоит `1U`: WebSocket `ws://<ip>:81`, те же команды (`P_ON`, `BRI`, `EFF`, `GET`…). `0U` возвращает UDP `:8888` для Matter, Алисы, Apple Home и приложения Gyver.
+
 ### Коды pairing (esp-matter demo)
 
 | | |
@@ -48,8 +52,6 @@ Wi‑Fi для моста обычно приходит при pairing — не 
 | QR payload | `MT:Y.K9042C00KA0648G00` |
 
 Обычный `flash` **без** `erase-flash` сохраняет Matter fabric.
-
-Транспорт команд лампы — `LAMP_NET_MODE` в `lamp/gunner47_v2.87in1/Constants.h`. В этом дереве стоит `1U`: WebSocket `ws://<ip>:81`, те же команды (`P_ON`, `BRI`, `EFF`, `GET`…). `0U` возвращает UDP `:8888` для Matter, Алисы, Apple Home и приложения Gyver.
 
 ## Комплектующие
 
@@ -85,12 +87,6 @@ Wi‑Fi для моста обычно приходит при pairing — не 
 
 Подробнее по мостам: [`matter-bridge/README.md`](matter-bridge/README.md), [`tasmota-bridge/README.md`](tasmota-bridge/README.md).
 
-## Лицензия и благодарности
-
-Код репозитория (мост, документация и доработки) — [MIT](LICENSE), © 2026 Anzor Magomedov.
-
-База лампы — **gunner47 / [GyverLamp](https://github.com/AlexGyver/GyverLamp)**; у `esp-matter` и прочих зависимостей — свои лицензии.
-
 ## Веб-пульт
 
 ```bash
@@ -100,6 +96,12 @@ python3 -m http.server 8765
 ```
 
 Адрес по умолчанию — `gyverlamp.lan`, транспорт **WebSocket** (`ws://gyverlamp.lan:81`). Микрофон и звук вкладки рисуют спектр на матрице. Для UDP нужен `python3 web_proxy.py` и `LAMP_NET_MODE 0U` на лампе. Страницу открывай с `http://localhost`: из файла браузер не отдаёт микрофон.
+
+## Лицензия и благодарности
+
+Код репозитория (мост, документация и доработки) — [MIT](LICENSE), © 2026 Anzor Magomedov.
+
+База лампы — **gunner47 / [GyverLamp](https://github.com/AlexGyver/GyverLamp)**; у `esp-matter` и прочих зависимостей — свои лицензии.
 
 ## Для ИИ-агентов
 

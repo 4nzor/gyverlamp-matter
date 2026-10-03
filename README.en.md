@@ -39,6 +39,10 @@ Alice / Apple Home ──Matter──► ESP32‑C6 (bridge) ──UDP :8888─�
 
 The bridge usually gets Wi‑Fi during commissioning — do not hardcode CHIP `DEFAULT_WIFI_*`.
 
+### Lamp transport: UDP or WebSocket
+
+> Lamp command transport is `LAMP_NET_MODE` in `lamp/gunner47_v2.87in1/Constants.h`. This tree sets it to `1U`: WebSocket `ws://<ip>:81` with the same commands (`P_ON`, `BRI`, `EFF`, `GET`, …). `0U` brings back UDP `:8888` for Matter, Alice, Apple Home, and the Gyver app.
+
 ### Pairing codes (esp-matter demo)
 
 | | |
@@ -48,8 +52,6 @@ The bridge usually gets Wi‑Fi during commissioning — do not hardcode CHIP `D
 | QR payload | `MT:Y.K9042C00KA0648G00` |
 
 A normal `flash` **without** `erase-flash` keeps the Matter fabric.
-
-Lamp command transport is `LAMP_NET_MODE` in `lamp/gunner47_v2.87in1/Constants.h`. This tree sets it to `1U`: WebSocket `ws://<ip>:81` with the same commands (`P_ON`, `BRI`, `EFF`, `GET`, …). `0U` brings back UDP `:8888` for Matter, Alice, Apple Home, and the Gyver app.
 
 ## Parts
 
@@ -85,12 +87,6 @@ Example “Night”: hue ≈ **220°**, brightness **20%**, turn on.
 
 More detail: [`matter-bridge/README.en.md`](matter-bridge/README.en.md), [`tasmota-bridge/README.en.md`](tasmota-bridge/README.en.md).
 
-## License and credits
-
-This repo’s bridge, docs, and modifications — [MIT](LICENSE), © 2026 Anzor Magomedov.
-
-Lamp base is **gunner47 / [GyverLamp](https://github.com/AlexGyver/GyverLamp)**; `esp-matter` and other deps keep their own licenses.
-
 ## Web panel
 
 ```bash
@@ -100,6 +96,12 @@ python3 -m http.server 8765
 ```
 
 Default host is `gyverlamp.lan`, transport is **WebSocket** (`ws://gyverlamp.lan:81`). Microphone and tab audio draw a spectrum on the matrix. UDP needs `python3 web_proxy.py` and `LAMP_NET_MODE 0U` on the lamp. Open the page from `http://localhost`: a `file://` page cannot use the microphone.
+
+## License and credits
+
+This repo’s bridge, docs, and modifications — [MIT](LICENSE), © 2026 Anzor Magomedov.
+
+Lamp base is **gunner47 / [GyverLamp](https://github.com/AlexGyver/GyverLamp)**; `esp-matter` and other deps keep their own licenses.
 
 ## For AI agents
 
