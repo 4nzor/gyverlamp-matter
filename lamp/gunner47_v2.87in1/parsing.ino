@@ -3,8 +3,22 @@
 // Макрос для watchdog feed (ESP8266 использует ESP.wdtFeed(), ESP32 использует yield())
 // WDT_FEED теперь определен в gunner47_v2.87in1.ino перед setup()
 
+static void lampNetWrite(const uint8_t *data, size_t len)
+{
+#if (LAMP_NET_MODE == 1U)
+  WsManager::send(data, len);
+#else
+  Udp.write(data, len);
+#endif
+}
+
 void parseUDP()
 {
+#if (LAMP_NET_MODE == 1U)
+  WsManager::handle();
+  return;
+#endif
+
   int32_t packetSize = Udp.parsePacket();
   WDT_FEED(); // Feed watchdog при обработке UDP
 
@@ -271,7 +285,7 @@ if (!strncmp_P(inputBuffer, PSTR("GET"), 3))
           WiFi.localIP()[1],
           WiFi.localIP()[2],
           WiFi.localIP()[3],
-          ESP_UDP_PORT,
+          LAMP_CTRL_PORT,
           AP_NAME);
         #else
           sprintf_P(inputBuffer, PSTR("IP %u.%u.%u.%u:%u"),
@@ -279,7 +293,7 @@ if (!strncmp_P(inputBuffer, PSTR("GET"), 3))
           WiFi.localIP()[1],
           WiFi.localIP()[2],
           WiFi.localIP()[3],
-          ESP_UDP_PORT);
+          LAMP_CTRL_PORT);
         #endif
       }
       else
@@ -290,7 +304,7 @@ if (!strncmp_P(inputBuffer, PSTR("GET"), 3))
           AP_STATIC_IP[1],
           AP_STATIC_IP[2],
           AP_STATIC_IP[3],
-          ESP_UDP_PORT,
+          LAMP_CTRL_PORT,
           AP_NAME);
         #else
           sprintf_P(inputBuffer, PSTR("IP %u.%u.%u.%u:%u"),
@@ -298,7 +312,7 @@ if (!strncmp_P(inputBuffer, PSTR("GET"), 3))
           AP_STATIC_IP[1],
           AP_STATIC_IP[2],
           AP_STATIC_IP[3],
-          ESP_UDP_PORT);
+          LAMP_CTRL_PORT);
         #endif
       }
     }
@@ -461,47 +475,37 @@ if (!strncmp_P(inputBuffer, PSTR("GET"), 3))
          {
            case 1U:
            {
-             // Отправляем данные в том же пакете, что и общий ответ (beginPacket уже вызван в parseUDP())
-             #if defined(ESP8266)
-                Udp.write(efList_1.c_str());
-                Udp.write("\0");
-            #endif
-            #if defined(ESP32)
-                // На ESP32-C3 используем write() для совместимости с ESP8266
-                Udp.write((const uint8_t*)efList_1.c_str(), efList_1.length());
-                Udp.write((uint8_t)0);
-            #endif
-             // Очищаем outputBuffer, чтобы не отправлять дублирующий ответ
+             lampNetWrite((const uint8_t*)efList_1.c_str(), efList_1.length());
+#if (LAMP_NET_MODE != 1U)
+             {
+               uint8_t z = 0;
+               lampNetWrite(&z, 1);
+             }
+#endif
              outputBuffer[0] = '\0';
              break;
            }
            case 2U:
            {
-            #if defined(ESP8266)
-                Udp.write(efList_2.c_str());
-                Udp.write("\0");
-            #endif
-            #if defined(ESP32)
-                // На ESP32-C3 используем write() для совместимости с ESP8266
-                Udp.write((const uint8_t*)efList_2.c_str(), efList_2.length());
-                Udp.write((uint8_t)0);
-            #endif
-             // Очищаем outputBuffer, чтобы не отправлять дублирующий ответ
+             lampNetWrite((const uint8_t*)efList_2.c_str(), efList_2.length());
+#if (LAMP_NET_MODE != 1U)
+             {
+               uint8_t z = 0;
+               lampNetWrite(&z, 1);
+             }
+#endif
              outputBuffer[0] = '\0';
              break;
            }
            case 3U:
            {
-            #if defined(ESP8266)
-                Udp.write(efList_3.c_str());
-                Udp.write("\0");
-            #endif
-            #if defined(ESP32)
-                // На ESP32-C3 используем write() для совместимости с ESP8266
-                Udp.write((const uint8_t*)efList_3.c_str(), efList_3.length());
-                Udp.write((uint8_t)0);
-            #endif
-             // Очищаем outputBuffer, чтобы не отправлять дублирующий ответ
+             lampNetWrite((const uint8_t*)efList_3.c_str(), efList_3.length());
+#if (LAMP_NET_MODE != 1U)
+             {
+               uint8_t z = 0;
+               lampNetWrite(&z, 1);
+             }
+#endif
              outputBuffer[0] = '\0';
              #ifdef USE_DEFAULT_SETTINGS_RESET
              // и здесь же после успешной отправки списка эффектов делаем сброс настроек эффектов на значения по умолчанию
@@ -735,6 +739,36 @@ if (!strncmp_P(inputBuffer, PSTR("GET"), 3))
         str.toCharArray(TextTicker, str.length() + 1);
       #endif // defined(USE_SECRET_COMMANDS) || defined(USE_MANUAL_TIME_SETTING)
     }
+    else if (!strncmp_P(inputBuffer, PSTR("AUD"), 3)) {
+      // AUD + HH + 16 hex-цифр (0..F): спектр на матрицу. AUDOFF — вернуть обычные эффекты.
+      // Ответа нет, чтобы не забивать WebSocket эхом на каждом кадре.
+      auto hexNibble = [](char c) -> uint8_t {
+        if (c >= '0' && c <= '9') return (uint8_t)(c - '0');
+        if (c >= 'a' && c <= 'f') return (uint8_t)(c - 'a' + 10);
+        if (c >= 'A' && c <= 'F') return (uint8_t)(c - 'A' + 10);
+        return 0;
+      };
+      if (!strncmp_P(inputBuffer, PSTR("AUDOFF"), 6)) {
+        Painting = 0;
+      } else if (strlen(inputBuffer) >= 5U + WIDTH) {
+        Painting = 1;
+        const uint8_t hue = (uint8_t)((hexNibble(inputBuffer[3]) << 4) | hexNibble(inputBuffer[4]));
+        FastLED.clear();
+        for (uint8_t x = 0; x < WIDTH; x++) {
+          uint8_t rows = hexNibble(inputBuffer[5 + x]);
+          if (rows >= 15) rows = HEIGHT;
+          for (uint8_t y = 0; y < rows && y < HEIGHT; y++) {
+            const uint8_t value = (uint8_t)(50U + (uint16_t)y * 200U / HEIGHT);
+            drawPixelXY(x, y, CHSV(hue + x * 10, 255, value));
+          }
+          if (rows > 0) {
+            drawPixelXY(x, rows - 1, CRGB::White);
+          }
+        }
+        FastLED.show();
+      }
+      inputBuffer[0] = '\0';
+    }
     else if (!strncmp_P(inputBuffer, PSTR("DRW"), 3)) {
       drawPixelXY((int8_t)getValue(BUFF, ';', 1).toInt(), (int8_t)getValue(BUFF, ';', 2).toInt(), DriwingColor);
       FastLED.show();
@@ -791,13 +825,7 @@ if (!strncmp_P(inputBuffer, PSTR("GET"), 3))
               WDT_FEED(); // Feed watchdog в цикле отправки данных
               OutString = String(i) + ";" +  String(modes[i].Brightness) + ";" + String(modes[i].Speed) + ";" + String(modes[i].Scale) + "\n";
               OutString.toCharArray(replyPacket, MAX_UDP_BUFFER_SIZE);
-
-            #if defined(ESP8266)
-                Udp.write(replyPacket);
-            #endif
-            #if defined(ESP32)
-                Udp.print(replyPacket);
-            #endif
+              lampNetWrite((const uint8_t*)replyPacket, strlen(replyPacket));
             }
             break;
           }

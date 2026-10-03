@@ -8,6 +8,9 @@
 **/host_tests/test_gyver_map
 **/*.dSYM/
 
+# Full-chip dumps (Wi‑Fi and settings live in flash)
+backups/
+
 # Wi‑Fi secrets (never commit)
 secrets.env
 lamp/gunner47_v2.87in1/wifi_secrets.h

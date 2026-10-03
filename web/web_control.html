@@ -1,0 +1,2272 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GyverLamp — управление</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card-bg: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-dim: #8b949e;
+      --accent: #ff7b00;
+      --accent-glow: rgba(255, 123, 0, 0.35);
+      --success: #2ea043;
+      --danger: #f85149;
+      --header-bg: rgba(13, 17, 23, 0.88);
+      --input-bg: #21262d;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    button, input { font-family: inherit; }
+
+    /* Header */
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: var(--header-bg);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+    }
+    .header-inner {
+      max-width: 720px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .brand-mark {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #ff7b00, #ffaa00);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #0d1117;
+      flex-shrink: 0;
+      box-shadow: 0 4px 14px var(--accent-glow);
+    }
+    .brand-mark svg { width: 18px; height: 18px; }
+    .brand h1 {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+      line-height: 1.1;
+    }
+    .brand p {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+    .chip {
+      display: none;
+      margin-left: 6px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      background: rgba(255, 123, 0, 0.18);
+      color: #ffb86b;
+      border: 1px solid rgba(255, 123, 0, 0.35);
+      vertical-align: middle;
+    }
+    @media (min-width: 640px) { .chip { display: inline-block; } }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .conn-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 12px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-size: 12px;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .conn-badge:hover { border-color: #484f58; color: var(--text); }
+    .conn-badge .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #484f58;
+      flex-shrink: 0;
+    }
+    .conn-badge.is-live .dot {
+      background: var(--success);
+      box-shadow: 0 0 8px var(--success);
+    }
+    .conn-badge .ip {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 11px;
+      color: var(--text);
+      display: none;
+    }
+    @media (min-width: 480px) { .conn-badge .ip { display: inline; } }
+
+    .power-quick {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      color: var(--text-dim);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .power-quick svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+    .power-quick.active {
+      background: rgba(255, 123, 0, 0.18);
+      border-color: rgba(255, 123, 0, 0.45);
+      color: #ffb86b;
+    }
+
+    /* Desktop tabs in header */
+    .nav-desktop {
+      display: none;
+      align-items: center;
+      gap: 4px;
+      padding: 4px;
+      border-radius: 12px;
+      background: #0a0e14;
+      border: 1px solid var(--border);
+    }
+    @media (min-width: 768px) { .nav-desktop { display: flex; } }
+    .nav-desktop .tab-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text-dim);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .nav-desktop .tab-btn.active {
+      background: var(--accent);
+      color: #0d1117;
+      box-shadow: 0 2px 10px var(--accent-glow);
+    }
+    .nav-desktop .tab-btn svg { width: 14px; height: 14px; }
+
+    /* Mobile tab bar */
+    .nav-mobile {
+      display: flex;
+      gap: 4px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #21262d;
+      max-width: 720px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    @media (min-width: 768px) { .nav-mobile { display: none; } }
+    .nav-mobile .tab-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 6px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text-dim);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .nav-mobile .tab-btn.active {
+      background: var(--accent);
+      color: #0d1117;
+    }
+    .nav-mobile .tab-btn svg { width: 14px; height: 14px; }
+
+    /* Main */
+    .main {
+      flex: 1;
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .tab-panel { display: none; flex-direction: column; gap: 16px; }
+    .tab-panel.active { display: flex; }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+    .section-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-dim);
+      margin-bottom: 14px;
+    }
+
+    /* Visualizer + power */
+    .hero-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .hero-title { font-size: 18px; font-weight: 700; letter-spacing: -0.4px; }
+    .hero-sub {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+    .power-btn {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: var(--input-bg);
+      color: var(--text-dim);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.25s ease;
+      flex-shrink: 0;
+    }
+    .power-btn svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; }
+    .power-btn.active {
+      border-color: var(--accent);
+      background: radial-gradient(circle, var(--accent) 0%, #bd4b00 100%);
+      color: #fff;
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    .visualizer-wrapper {
+      position: relative;
+      width: 100%;
+      height: 120px;
+      background: #090d13;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    #ledCanvas {
+      width: 100%;
+      height: 100%;
+      image-rendering: pixelated;
+      display: block;
+    }
+    .glow-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.8);
+    }
+
+    .music-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+    .music-row .btn { padding: 8px 12px; }
+    .music-row .btn.active {
+      background: rgba(255, 123, 0, 0.18);
+      border-color: rgba(255, 123, 0, 0.5);
+      color: #ffb86b;
+    }
+    .music-state {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-left: auto;
+    }
+    .quick-modes {
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .quick-modes-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    .quick-modes-head button {
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 4px 2px;
+      text-decoration: none;
+    }
+    .quick-modes-head button:hover { color: #ffb86b; text-decoration: underline; }
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+    .quick-btn {
+      padding: 8px 6px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--input-bg);
+      color: var(--text-dim);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .quick-btn.active {
+      background: var(--accent);
+      color: #0d1117;
+      border-color: var(--accent);
+    }
+
+    /* Sliders */
+    .control-group { margin-bottom: 18px; }
+    .control-group:last-child { margin-bottom: 0; }
+    .control-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .val-badge {
+      background: var(--input-bg);
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+      border: 1px solid var(--border);
+      font-variant-numeric: tabular-nums;
+    }
+    .hint-label { font-size: 12px; color: var(--text-dim); font-weight: 500; margin-right: 8px; }
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 8px;
+      background: var(--input-bg);
+      border-radius: 4px;
+      outline: none;
+      border: 1px solid var(--border);
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      box-shadow: 0 0 10px var(--accent-glow);
+      border: 2px solid #fff;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      box-shadow: 0 0 10px var(--accent-glow);
+      border: 2px solid #fff;
+    }
+    .bri-presets {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .bri-presets button {
+      flex: 1;
+      padding: 6px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--input-bg);
+      color: var(--text-dim);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .bri-presets button.active {
+      background: var(--accent);
+      color: #0d1117;
+      border-color: var(--accent);
+    }
+    .stepper-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .stepper-row input[type="range"] { flex: 1; }
+    .step-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--input-bg);
+      color: var(--text);
+      font-weight: 700;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    /* Modes */
+    .modes-toolbar {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .search-input {
+      width: 100%;
+      padding: 10px 12px 10px 36px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #0a0e14;
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+    }
+    .search-input:focus { border-color: var(--accent); }
+    .search-wrap { position: relative; }
+    .search-wrap svg {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 15px;
+      height: 15px;
+      color: var(--text-dim);
+      pointer-events: none;
+    }
+    .fav-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      min-height: 0;
+    }
+    .fav-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 123, 0, 0.35);
+      background: rgba(255, 123, 0, 0.12);
+      color: #ffb86b;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .modes-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      max-height: min(60vh, 520px);
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+    @media (min-width: 560px) {
+      .modes-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    .modes-modal .modal {
+      max-width: 720px;
+      width: 100%;
+      max-height: min(92vh, 820px);
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 16px;
+    }
+    .modes-modal .modes-body {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 0;
+      flex: 1;
+      overflow: hidden;
+    }
+    .modes-modal .modes-grid {
+      max-height: none;
+      flex: 1;
+      min-height: 240px;
+    }
+    .hero-sub {
+      cursor: pointer;
+    }
+    .hero-sub:hover { color: var(--accent); }
+    .modes-grid::-webkit-scrollbar { width: 4px; }
+    .modes-grid::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    .mode-btn {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 10px 10px 12px;
+      text-align: left;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      min-height: 44px;
+    }
+    .mode-btn:hover { background: #30363d; }
+    .mode-btn.active {
+      border-color: var(--accent);
+      background: rgba(255, 123, 0, 0.12);
+      color: var(--accent);
+      box-shadow: inset 0 0 10px rgba(255, 123, 0, 0.12);
+    }
+    .mode-btn .idx {
+      font-size: 10px;
+      font-family: ui-monospace, monospace;
+      color: var(--text-dim);
+      min-width: 18px;
+    }
+    .mode-btn .name {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .mode-btn .star {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 14px;
+      padding: 2px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .mode-btn .star.on { color: #ffb86b; }
+    .modes-empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 28px 12px;
+      color: var(--text-dim);
+      font-size: 13px;
+    }
+
+    /* OTA */
+    .file-dropzone {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 28px 16px;
+      text-align: center;
+      cursor: pointer;
+      background: #090d13;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .file-dropzone:hover, .file-dropzone.drag { border-color: var(--accent); background: rgba(255, 123, 0, 0.06); }
+    .file-dropzone.has-file { border-color: rgba(46, 160, 67, 0.6); }
+    .file-dropzone input { display: none; }
+    .file-dropzone .dz-icon { font-size: 28px; margin-bottom: 8px; }
+    .file-dropzone .dz-title { font-size: 14px; font-weight: 600; }
+    .file-dropzone .dz-sub { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+    .ota-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    @media (min-width: 480px) {
+      .ota-actions { flex-direction: row; }
+    }
+    .btn {
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, filter 0.2s;
+    }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      flex: 1;
+    }
+    .btn-primary:hover:not(:disabled) { filter: brightness(1.08); }
+    .progress-bar-bg {
+      width: 100%;
+      height: 12px;
+      background: var(--input-bg);
+      border-radius: 6px;
+      overflow: hidden;
+      margin-top: 14px;
+      display: none;
+      border: 1px solid var(--border);
+    }
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #ff7b00, #ffaa00);
+      transition: width 0.2s ease;
+    }
+    .ota-log {
+      margin-top: 12px;
+      background: #05070a;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      color: #7ee787;
+      max-height: 140px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      line-height: 1.45;
+    }
+    .ota-hint {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 10px;
+      background: rgba(255, 123, 0, 0.08);
+      border: 1px solid rgba(255, 123, 0, 0.2);
+      font-size: 12px;
+      color: var(--text-dim);
+      line-height: 1.45;
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background: rgba(0, 0, 0, 0.72);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      width: 100%;
+      max-width: 440px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+    }
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-head h3 { font-size: 16px; font-weight: 700; }
+    .modal-head p { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: none;
+      background: var(--input-bg);
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+    }
+    .field-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+    .ip-row { display: flex; gap: 8px; }
+    .ip-row input {
+      flex: 1;
+      padding: 11px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #0a0e14;
+      color: var(--text);
+      font-family: ui-monospace, monospace;
+      font-size: 13px;
+      outline: none;
+    }
+    .ip-row input:focus { border-color: var(--accent); }
+    .proto-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .proto-btn {
+      text-align: left;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #0a0e14;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s, color 0.15s;
+    }
+    .proto-btn:hover { border-color: #484f58; color: var(--text); }
+    .proto-btn.active {
+      background: rgba(255, 123, 0, 0.14);
+      border-color: var(--accent);
+      color: var(--text);
+    }
+    .proto-btn .proto-name {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .proto-btn .proto-desc {
+      display: block;
+      margin-top: 3px;
+      font-size: 10px;
+      font-family: ui-monospace, monospace;
+      color: var(--text-dim);
+    }
+    .modal-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .modal-actions .btn { flex: 1; min-width: 110px; }
+    .modal-status {
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--text-dim);
+      min-height: 18px;
+    }
+    .modal-status.ok { color: #7ee787; }
+    .modal-status.err { color: #ffa198; }
+    .proto-note {
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 10px;
+      background: #0a0e14;
+      border: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-dim);
+      line-height: 1.45;
+    }
+    .proto-note strong { color: var(--text); }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 16px;
+      z-index: 60;
+      max-width: min(360px, calc(100vw - 32px));
+      padding: 12px 16px;
+      border-radius: 12px;
+      background: var(--card-bg);
+      border: 1px solid rgba(255, 123, 0, 0.4);
+      color: var(--text);
+      font-size: 12px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+    .toast.show { display: flex; }
+
+    .footer {
+      border-top: 1px solid #21262d;
+      padding: 14px 16px;
+      text-align: center;
+      font-size: 11px;
+      color: #484f58;
+    }
+  </style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.5 5.5L19 9l-5.5 1.5L12 16l-1.5-5.5L5 9l5.5-1.5L12 2zm6 11l.8 2.8L22 17l-3.2.8L18 21l-.8-3.2L14 17l3.2-.8L18 13zM6 14l.6 2.2L9 17l-2.4.6L6 20l-.6-2.4L3 17l2.4-.6L6 14z"/></svg>
+      </div>
+      <div>
+        <h1>GyverLamp <span class="chip">UDP :8888</span></h1>
+        <p>Панель управления светодиодной лампой</p>
+      </div>
+    </div>
+
+    <nav class="nav-desktop" aria-label="Разделы">
+      <button type="button" class="tab-btn active" data-tab="controls">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M2 14h4M10 8h4M18 16h4"/></svg>
+        Управление
+      </button>
+      <button type="button" class="tab-btn" data-tab="modes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3z"/></svg>
+        Режимы
+      </button>
+      <button type="button" class="tab-btn" data-tab="ota">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+        OTA
+      </button>
+    </nav>
+
+    <div class="header-actions">
+      <button type="button" class="conn-badge" id="connBadge" title="Параметры подключения">
+        <span class="dot"></span>
+        <span class="ip" id="connIpLabel">нет связи</span>
+        <span id="connProtoLabel">UDP</span>
+      </button>
+      <button type="button" class="power-quick" id="powerQuick" title="Питание">
+        <svg viewBox="0 0 24 24"><path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <nav class="nav-mobile" aria-label="Разделы">
+    <button type="button" class="tab-btn active" data-tab="controls">Управление</button>
+    <button type="button" class="tab-btn" data-tab="modes">Режимы</button>
+    <button type="button" class="tab-btn" data-tab="ota">OTA</button>
+  </nav>
+</header>
+
+<main class="main">
+  <!-- Controls -->
+  <section class="tab-panel active" id="tabControls">
+    <div class="card">
+      <div class="hero-row">
+        <div>
+          <div class="hero-title">Умная лампа</div>
+          <div class="hero-sub" id="effectLabel">Эффект не выбран · подключите лампу</div>
+        </div>
+        <button type="button" class="power-btn" id="powerBtn" title="Вкл / Выкл">
+          <svg viewBox="0 0 24 24"><path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10"/></svg>
+        </button>
+      </div>
+      <div class="visualizer-wrapper">
+        <canvas id="ledCanvas" width="32" height="16"></canvas>
+        <div class="glow-overlay"></div>
+      </div>
+      <div class="music-row">
+        <button type="button" class="btn" id="musicMicBtn">Микрофон</button>
+        <button type="button" class="btn" id="musicTabBtn">Звук вкладки</button>
+        <span class="music-state" id="musicState">музыка выкл</span>
+      </div>
+      <div class="quick-modes">
+        <div class="quick-modes-head">
+          <span>Быстрый выбор</span>
+          <button type="button" id="gotoModes">Все эффекты →</button>
+        </div>
+        <div class="quick-grid" id="quickGrid"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Параметры лампы</div>
+      <div class="control-group">
+        <div class="control-label-row">
+          <span>Яркость</span>
+          <span class="val-badge" id="briVal">128 (50%)</span>
+        </div>
+        <input type="range" id="briSlider" min="1" max="255" value="128">
+        <div class="bri-presets" id="briPresets">
+          <button type="button" data-pct="10">10%</button>
+          <button type="button" data-pct="25">25%</button>
+          <button type="button" data-pct="50">50%</button>
+          <button type="button" data-pct="75">75%</button>
+          <button type="button" data-pct="100">100%</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <div class="control-label-row">
+          <span>Скорость <span class="hint-label" id="spdHint">плавно</span></span>
+          <span class="val-badge" id="spdVal">100</span>
+        </div>
+        <div class="stepper-row">
+          <button type="button" class="step-btn" id="spdMinus" title="-15">−</button>
+          <input type="range" id="spdSlider" min="1" max="255" value="100">
+          <button type="button" class="step-btn" id="spdPlus" title="+15">+</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <div class="control-label-row">
+          <span>Масштаб <span class="hint-label" id="sclHint">сбалансированный</span></span>
+          <span class="val-badge" id="sclVal">50</span>
+        </div>
+        <div class="stepper-row">
+          <button type="button" class="step-btn" id="sclMinus" title="-10">−</button>
+          <input type="range" id="sclSlider" min="1" max="100" value="50">
+          <button type="button" class="step-btn" id="sclPlus" title="+10">+</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Modes -->
+  <section class="tab-panel" id="tabModes">
+    <div class="card">
+      <div class="section-title">Каталог эффектов</div>
+      <div class="modes-toolbar">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input type="search" class="search-input" id="modeSearch" placeholder="Поиск эффекта…" autocomplete="off">
+        </div>
+        <div class="fav-chips" id="favChips"></div>
+      </div>
+      <div class="modes-grid" id="modesGrid" style="margin-top: 14px;"></div>
+    </div>
+  </section>
+
+  <!-- OTA -->
+  <section class="tab-panel" id="tabOta">
+    <div class="card">
+      <div class="section-title">Обновление прошивки (OTA)</div>
+      <p style="font-size:13px;color:var(--text-dim);margin-bottom:14px;line-height:1.45;">
+        Сначала активируйте режим OTA на лампе, затем загрузите файл <code>.bin</code> через прокси
+        <span style="font-family:monospace;color:var(--text)">localhost:9002</span>.
+      </p>
+
+      <div class="file-dropzone" id="otaDropzone">
+        <div class="dz-icon">⬆</div>
+        <div class="dz-title" id="dropLabel">Нажмите или перетащите firmware.bin</div>
+        <div class="dz-sub">Arduino / PlatformIO · .bin / .bin.gz</div>
+        <input type="file" id="firmwareFile" accept=".bin,.bin.gz">
+      </div>
+
+      <div class="progress-bar-bg" id="otaBarBg">
+        <div class="progress-bar-fill" id="otaBarFill"></div>
+      </div>
+
+      <div class="ota-actions">
+        <button type="button" class="btn" id="activateOtaBtn">Активировать OTA</button>
+        <button type="button" class="btn btn-primary" id="startOtaBtn" disabled>Запустить прошивку</button>
+      </div>
+
+      <div class="ota-log" id="otaLog">Готов к загрузке прошивки…</div>
+      <div class="ota-hint">
+        Команда <strong>OTA</strong> отправляется дважды (как в прошивке Gyver). Окно обновления ≈ 5 минут.
+        Прокси вызывает espota.py / HTTP :8266. В режиме WebSocket команда OTA идёт на лампу напрямую, загрузка .bin — всё ещё через прокси.
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  GyverLamp Web Controller · UDP :8888 / WebSocket :81 · Alice / Apple Home Matter
+</footer>
+
+<!-- Connection modal -->
+<div class="modal-backdrop" id="connModal" role="dialog" aria-modal="true" aria-labelledby="connModalTitle">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h3 id="connModalTitle">Подключение</h3>
+        <p>Транспорт, IP лампы и поиск в сети</p>
+      </div>
+      <button type="button" class="modal-close" id="connModalClose" aria-label="Закрыть">×</button>
+    </div>
+
+    <label class="field-label" for="lampIp">Адрес лампы</label>
+    <div class="ip-row">
+      <input type="text" id="lampIp" value="gyverlamp.lan" placeholder="gyverlamp.lan" autocomplete="off">
+    </div>
+
+    <label class="field-label" id="protoLabel">Транспорт (как LAMP_NET_MODE на лампе)</label>
+    <div class="proto-grid" id="protoGrid" role="group" aria-labelledby="protoLabel">
+      <button type="button" class="proto-btn active" data-proto="udp" id="protoUdpBtn">
+        <span class="proto-name">UDP</span>
+        <span class="proto-desc">прокси → :8888</span>
+      </button>
+      <button type="button" class="proto-btn" data-proto="ws" id="protoWsBtn">
+        <span class="proto-name">WebSocket</span>
+        <span class="proto-desc">ws://gyverlamp.lan:81</span>
+      </button>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn" id="discoverBtn">Найти</button>
+      <button type="button" class="btn btn-primary" id="connectBtn">Подключить</button>
+      <button type="button" class="btn" id="disconnectBtn">Отключить</button>
+    </div>
+
+    <div class="modal-status" id="connStatus"></div>
+
+    <div class="proto-note" id="protoNote">
+      <strong>UDP:</strong> нужен <code>python3 web/web_proxy.py</code>. Совместимо с Matter, Алисой, Apple Home и приложением Gyver.
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<!-- Modes catalog modal (как в Lumina: «Все эффекты») -->
+<div class="modal-backdrop modes-modal" id="modesModal" role="dialog" aria-modal="true" aria-labelledby="modesModalTitle">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h3 id="modesModalTitle">Все эффекты</h3>
+        <p id="modesModalSub">Каталог с лампы · UDP LIST</p>
+      </div>
+      <button type="button" class="modal-close" id="modesModalClose" aria-label="Закрыть">×</button>
+    </div>
+    <div class="modes-body">
+      <div class="modes-toolbar">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input type="search" class="search-input" id="modalModeSearch" placeholder="Поиск эффекта…" autocomplete="off">
+        </div>
+        <div class="fav-chips" id="modalFavChips"></div>
+      </div>
+      <div class="modes-grid" id="modalModesGrid"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const PROXY_PORT = 9002;
+  const PROXY = `http://localhost:${PROXY_PORT}`;
+  const WS_PORT = 81;
+  const DEFAULT_HOST = 'gyverlamp.lan';
+  const LS_IP = 'gyver.lastIp';
+  const LS_FAV = 'gyver.favorites';
+  const LS_PROTO = 'gyver.protocol';
+  const MAX_FAVORITES = 12;
+  const SLIDER_DEBOUNCE_MS = 280;
+  const MIN_COMMAND_INTERVAL = 180;
+
+  const state = {
+    power: false,
+    brightness: 128,
+    speed: 100,
+    scale: 50,
+    mode: 0
+  };
+  const SCALE_MAX = 100;
+
+  let lampIp = '';
+  let protocol = localStorage.getItem(LS_PROTO) === 'ws' ? 'ws' : 'udp';
+  let connected = false;
+  let ws = null;
+  let wsWaiters = [];
+  let effects = [];
+  let favorites = [];
+  let autoUpdateInterval = null;
+  let isUserControlling = false;
+  let lastCommandTime = 0;
+  let briTimer = null;
+  let spdTimer = null;
+  let sclTimer = null;
+  let selectedFile = null;
+  let toastTimer = null;
+  let silentLoad = false;
+
+  const $ = (id) => document.getElementById(id);
+  const briSlider = $('briSlider');
+  const spdSlider = $('spdSlider');
+  const sclSlider = $('sclSlider');
+  const canvas = $('ledCanvas');
+  const ctx = canvas.getContext('2d');
+
+  function loadFavorites() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(LS_FAV) || '[]');
+      favorites = Array.isArray(raw) ? raw.map(Number).filter(Number.isFinite) : [];
+    } catch (_) {
+      favorites = [];
+    }
+  }
+
+  function saveFavorites() {
+    localStorage.setItem(LS_FAV, JSON.stringify(favorites.slice(0, MAX_FAVORITES)));
+  }
+
+  function showToast(msg) {
+    const el = $('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+  }
+
+  function setProtocol(next) {
+    const prev = protocol;
+    protocol = next === 'ws' ? 'ws' : 'udp';
+    localStorage.setItem(LS_PROTO, protocol);
+    document.querySelectorAll('.proto-btn').forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.proto === protocol);
+    });
+    const note = $('protoNote');
+    if (protocol === 'ws') {
+      note.innerHTML = '<strong>WebSocket:</strong> лампа с <code>LAMP_NET_MODE 1U</code>, страница по <code>http://</code> или файлом. Команды те же (<code>P_ON</code> / <code>BRI</code> / <code>GET</code>). DISCOVER и Matter не работают.';
+    } else {
+      note.innerHTML = '<strong>UDP:</strong> нужен <code>python3 web/web_proxy.py</code>. Совместимо с Matter, Алисой, Apple Home и приложением Gyver.';
+    }
+    $('discoverBtn').disabled = protocol === 'ws';
+    $('discoverBtn').title = protocol === 'ws'
+      ? 'DISCOVER только для UDP :8888'
+      : 'Поиск лампы (UDP DISCOVER)';
+    if (connected && prev !== protocol) disconnect();
+    else updateConnBadge();
+  }
+
+  function closeWs() {
+    if (ws) {
+      ws.onclose = null;
+      ws.onerror = null;
+      ws.onmessage = null;
+      try { ws.close(); } catch (_) {}
+      ws = null;
+    }
+    wsWaiters.forEach((w) => {
+      clearTimeout(w.timer);
+      w.reject(new Error('WebSocket закрыт'));
+    });
+    wsWaiters = [];
+  }
+
+  function waitWsReply(timeoutMs) {
+    return new Promise((resolve, reject) => {
+      const entry = {};
+      entry.timer = setTimeout(() => {
+        wsWaiters = wsWaiters.filter((w) => w !== entry);
+        reject(new Error('Нет ответа от лампы'));
+      }, timeoutMs);
+      entry.resolve = (text) => {
+        clearTimeout(entry.timer);
+        resolve(text);
+      };
+      entry.reject = (err) => {
+        clearTimeout(entry.timer);
+        reject(err);
+      };
+      wsWaiters.push(entry);
+    });
+  }
+
+  function openWs(ip) {
+    return new Promise((resolve, reject) => {
+      closeWs();
+      let socket;
+      try {
+        socket = new WebSocket(`ws://${ip}:${WS_PORT}`);
+      } catch (e) {
+        reject(e);
+        return;
+      }
+      const t = setTimeout(() => {
+        try { socket.close(); } catch (_) {}
+        reject(new Error(`Таймаут ws://${ip}:${WS_PORT}. Проверьте LAMP_NET_MODE 1U`));
+      }, 5000);
+      socket.onmessage = (e) => {
+        const text = String(e.data || '');
+        const waiter = wsWaiters.shift();
+        if (waiter) waiter.resolve(text);
+        else if (text.startsWith('CURR')) applyCurr(text);
+      };
+      socket.onopen = () => {
+        clearTimeout(t);
+        ws = socket;
+        resolve();
+      };
+      socket.onerror = () => {
+        clearTimeout(t);
+        reject(new Error(`Не удалось открыть ws://${ip}:${WS_PORT}`));
+      };
+      socket.onclose = () => {
+        clearTimeout(t);
+        const wasUs = ws === socket;
+        if (wasUs) ws = null;
+        wsWaiters.forEach((w) => {
+          clearTimeout(w.timer);
+          w.reject(new Error('WebSocket закрыт'));
+        });
+        wsWaiters = [];
+        if (wasUs && connected && protocol === 'ws') {
+          connected = false;
+          stopMusic(false);
+          if (autoUpdateInterval) {
+            clearInterval(autoUpdateInterval);
+            autoUpdateInterval = null;
+          }
+          updateConnBadge();
+          syncControlsUI();
+          showToast('WebSocket закрыт');
+        }
+      };
+    });
+  }
+
+  function parseEfListChunk(text) {
+    const found = {};
+    if (!text) return found;
+    text = String(text).replace(/\0/g, '').trim();
+    if (text.startsWith('LIST') && text.includes(';')) {
+      text = text.split(';').slice(1).join(';');
+    }
+    text.split(';').forEach((part) => {
+      part = part.replace(/[\n\r]/g, '').trim();
+      const m = part.match(/^(\d+)\.\s*([^,]+)/);
+      if (m) found[Number(m[1])] = m[2].trim();
+    });
+    return found;
+  }
+
+  function setConnStatus(msg, kind) {
+    const el = $('connStatus');
+    el.textContent = msg || '';
+    el.className = 'modal-status' + (kind ? ' ' + kind : '');
+  }
+
+  function updateConnBadge() {
+    const badge = $('connBadge');
+    const label = $('connIpLabel');
+    const protoEl = $('connProtoLabel');
+    if (protoEl) protoEl.textContent = protocol === 'ws' ? 'WS' : 'UDP';
+    if (connected && lampIp) {
+      badge.classList.add('is-live');
+      label.textContent = lampIp;
+    } else {
+      badge.classList.remove('is-live');
+      label.textContent = 'нет связи';
+    }
+  }
+
+  function speedLabel(v) {
+    if (v < 65) return 'медленно';
+    if (v < 130) return 'плавно';
+    if (v < 195) return 'энергично';
+    return 'турбо';
+  }
+
+  function scaleLabel(v) {
+    if (v < 25) return 'мелкий';
+    if (v < 55) return 'сбалансированный';
+    if (v < 80) return 'крупный';
+    return 'макро';
+  }
+
+  function clampScale(v) {
+    const n = parseInt(v, 10);
+    if (!Number.isFinite(n)) return 1;
+    return Math.min(SCALE_MAX, Math.max(1, n));
+  }
+
+  function syncControlsUI() {
+    briSlider.value = state.brightness;
+    spdSlider.value = state.speed;
+    sclSlider.value = state.scale;
+    const pct = Math.round((state.brightness / 255) * 100);
+    $('briVal').textContent = `${state.brightness} (${pct}%)`;
+    $('spdVal').textContent = String(state.speed);
+    $('sclVal').textContent = String(state.scale);
+    $('spdHint').textContent = speedLabel(state.speed);
+    $('sclHint').textContent = scaleLabel(state.scale);
+
+    document.querySelectorAll('#briPresets button').forEach((btn) => {
+      const target = Math.round((Number(btn.dataset.pct) / 100) * 255);
+      btn.classList.toggle('active', Math.abs(state.brightness - target) < 5);
+    });
+
+    $('powerBtn').classList.toggle('active', state.power);
+    $('powerQuick').classList.toggle('active', state.power);
+
+    const name = effects[state.mode] || `Эффект ${state.mode}`;
+    $('effectLabel').textContent = connected
+      ? `${name} · #${state.mode}` + (state.power ? '' : ' · выкл')
+      : 'Эффект не выбран · подключите лампу';
+
+    document.querySelectorAll('.mode-btn').forEach((btn) => {
+      btn.classList.toggle('active', Number(btn.dataset.index) === state.mode);
+    });
+    document.querySelectorAll('.quick-btn').forEach((btn) => {
+      btn.classList.toggle('active', Number(btn.dataset.index) === state.mode);
+    });
+  }
+
+  function switchTab(name) {
+    document.querySelectorAll('.tab-btn').forEach((b) => {
+      b.classList.toggle('active', b.dataset.tab === name);
+    });
+    document.querySelectorAll('.tab-panel').forEach((p) => {
+      p.classList.toggle('active', p.id === 'tab' + name.charAt(0).toUpperCase() + name.slice(1));
+    });
+  }
+
+  async function sendCommand(command, opts = {}) {
+    const { skipThrottle = false, silent = false } = opts;
+
+    if (!connected && command !== 'GET') {
+      if (!silent) showToast('Сначала подключитесь к лампе');
+      throw new Error('Не подключено к лампе');
+    }
+
+    const now = Date.now();
+    if (!skipThrottle && (now - lastCommandTime) < MIN_COMMAND_INTERVAL) {
+      return null;
+    }
+    lastCommandTime = now;
+
+    if (command !== 'GET') {
+      isUserControlling = true;
+      setTimeout(() => { isUserControlling = false; }, 2000);
+    }
+
+    let data;
+    if (protocol === 'ws') {
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
+        throw new Error('WebSocket не подключён');
+      }
+      const expectReply = command === 'GET' || command.startsWith('LIST');
+      const timeoutMs = command.startsWith('LIST') ? 5000 : (expectReply ? 4000 : 1500);
+      const pending = waitWsReply(timeoutMs);
+      ws.send(command);
+      try {
+        const response = await pending;
+        data = { success: true, response };
+      } catch (e) {
+        if (expectReply) throw e;
+        data = { success: true, response: '' };
+      }
+    } else {
+      const response = await fetch(`${PROXY}/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ip: lampIp, command })
+      });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      data = await response.json();
+    }
+
+    if (!data.success) {
+      if (!silent) showToast(data.error || 'Ошибка команды');
+      throw new Error(data.error || 'Ошибка команды');
+    }
+
+    if (command === 'P_ON') state.power = true;
+    if (command === 'P_OFF') state.power = false;
+    if (data.response && String(data.response).startsWith('CURR')) applyCurr(data.response);
+    if (command.startsWith('EFF')) {
+      const n = parseInt(command.slice(3), 10);
+      if (Number.isFinite(n)) state.mode = n;
+    }
+    if (command.startsWith('BRI')) state.brightness = Math.min(255, Math.max(1, parseInt(command.slice(3), 10) || state.brightness));
+    if (command.startsWith('SPD')) state.speed = Math.min(255, Math.max(1, parseInt(command.slice(3), 10) || state.speed));
+    if (command.startsWith('SCA')) state.scale = clampScale(command.slice(3));
+
+    syncControlsUI();
+    return data;
+  }
+
+  function applyCurr(response) {
+    if (!response || !String(response).startsWith('CURR')) return;
+    const parts = String(response).trim().split(/\s+/);
+    if (parts.length < 6) return;
+    state.mode = parseInt(parts[1], 10) || 0;
+    state.brightness = Math.min(255, Math.max(1, parseInt(parts[2], 10) || 1));
+    state.speed = Math.min(255, Math.max(1, parseInt(parts[3], 10) || 1));
+    state.scale = clampScale(parts[4]);
+    state.power = parts[5] === '1';
+    syncControlsUI();
+    renderQuickModes();
+  }
+
+  async function loadEffectsFromLamp() {
+    if (!lampIp) return;
+    try {
+      if (protocol === 'ws') {
+        const byIndex = {};
+        for (const n of [1, 2, 3]) {
+          const data = await sendCommand(`LIST${n}`, { skipThrottle: true, silent: true });
+          Object.assign(byIndex, parseEfListChunk(data && data.response));
+        }
+        const keys = Object.keys(byIndex).map(Number);
+        if (!keys.length) throw new Error('Лампа не вернула список эффектов');
+        const maxIdx = Math.max.apply(null, keys);
+        effects = [];
+        for (let i = 0; i <= maxIdx; i++) effects.push(byIndex[i] || `Эффект ${i}`);
+        renderModes();
+        renderQuickModes();
+        renderFavChips();
+        syncControlsUI();
+        if (!silentLoad) showToast(`Загружено эффектов: ${effects.length}`);
+        return;
+      }
+
+      const res = await fetch(`${PROXY}/effects?ip=${encodeURIComponent(lampIp)}`);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.effects)) {
+        effects = data.effects;
+        renderModes();
+        renderQuickModes();
+        renderFavChips();
+        syncControlsUI();
+        if (!silentLoad) showToast(`Загружено эффектов: ${effects.length}`);
+      } else {
+        effects = effects.length ? effects : fallbackEffects();
+        renderModes();
+        renderQuickModes();
+        if (!silentLoad) showToast(data.error || 'Не удалось загрузить LIST');
+      }
+    } catch (e) {
+      effects = effects.length ? effects : fallbackEffects();
+      renderModes();
+      renderQuickModes();
+      console.warn('effects load', e);
+    }
+  }
+
+  function fallbackEffects() {
+    return [
+      'Конфетти', 'Огонь', 'Радуга верт.', 'Радуга гориз.', 'Смена цвета',
+      'Безумие 3D', 'Облака 3D', 'Лава 3D', 'Плазма 3D', 'Радуга 3D',
+      'Павлин 3D', 'Зебра 3D', 'Лес 3D', 'Океан 3D', 'Цвет',
+      'Снегопад', 'Матрица', 'Светлячки', 'Светлячки со шлейфом', 'Водопад'
+    ];
+  }
+
+  function isFavorite(index) {
+    return favorites.includes(index);
+  }
+
+  function toggleFavorite(index, ev) {
+    if (ev) { ev.preventDefault(); ev.stopPropagation(); }
+    index = Number(index);
+    if (!Number.isFinite(index)) return;
+    if (isFavorite(index)) {
+      favorites = favorites.filter((i) => i !== index);
+    } else {
+      if (favorites.length >= MAX_FAVORITES) {
+        showToast(`В избранном максимум ${MAX_FAVORITES}`);
+        return;
+      }
+      favorites.push(index);
+    }
+    saveFavorites();
+    renderModes();
+    renderFavChips();
+  }
+
+  function renderFavChips() {
+    renderFavChipsInto($('favChips'));
+    renderFavChipsInto($('modalFavChips'));
+  }
+
+  function renderFavChipsInto(wrap) {
+    if (!wrap) return;
+    wrap.innerHTML = '';
+    favorites.forEach((idx) => {
+      if (effects.length && (idx < 0 || idx >= effects.length)) return;
+      if (!effects.length && !Number.isFinite(idx)) return;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'fav-chip';
+      btn.textContent = '★ ' + (effects[idx] || `#${idx}`);
+      btn.title = effects[idx] || `Эффект ${idx}`;
+      btn.onclick = () => selectMode(idx);
+      wrap.appendChild(btn);
+    });
+  }
+
+  function updateGotoModesLabel() {
+    const btn = $('gotoModes');
+    if (!btn) return;
+    const n = effects.length;
+    btn.textContent = n ? `Все эффекты (${n}) →` : 'Все эффекты →';
+  }
+
+  function renderModes() {
+    renderModesInto($('modesGrid'), $('modeSearch'));
+    renderModesInto($('modalModesGrid'), $('modalModeSearch'));
+    updateGotoModesLabel();
+    const sub = $('modesModalSub');
+    if (sub) {
+      sub.textContent = effects.length
+        ? `${effects.length} эффектов с лампы · выберите режим`
+        : 'Подключите лампу — список загрузится из LIST';
+    }
+  }
+
+  function renderModesInto(grid, searchInput) {
+    if (!grid) return;
+    const q = ((searchInput && searchInput.value) || '').trim().toLowerCase();
+    grid.innerHTML = '';
+
+    if (!effects.length) {
+      grid.innerHTML = '<div class="modes-empty">Подключите лампу — список загрузится из LIST1…3</div>';
+      return;
+    }
+
+    let shown = 0;
+    effects.forEach((name, index) => {
+      if (q && !(name || '').toLowerCase().includes(q) && !String(index).includes(q)) return;
+      shown++;
+      const row = document.createElement('div');
+      row.className = 'mode-btn' + (index === state.mode ? ' active' : '');
+      row.dataset.index = String(index);
+      row.setAttribute('role', 'button');
+      row.tabIndex = 0;
+      row.setAttribute('aria-label', `${index}. ${name || ('Эффект ' + index)}`);
+
+      const idxEl = document.createElement('span');
+      idxEl.className = 'idx';
+      idxEl.textContent = String(index);
+
+      const label = document.createElement('span');
+      label.className = 'name';
+      label.textContent = name || ('Эффект ' + index);
+
+      const star = document.createElement('button');
+      star.type = 'button';
+      star.className = 'star' + (isFavorite(index) ? ' on' : '');
+      star.setAttribute(
+        'aria-label',
+        isFavorite(index) ? `Убрать «${name}» из избранного` : `В избранное: ${name}`
+      );
+      star.textContent = isFavorite(index) ? '★' : '☆';
+      star.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleFavorite(index, e);
+      });
+
+      row.appendChild(idxEl);
+      row.appendChild(label);
+      row.appendChild(star);
+      const pick = () => selectMode(index);
+      row.addEventListener('click', (e) => {
+        if (e.target.closest('.star')) return;
+        pick();
+      });
+      row.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          pick();
+        }
+      });
+      grid.appendChild(row);
+    });
+
+    if (!shown) {
+      grid.innerHTML = '<div class="modes-empty">Ничего не найдено</div>';
+    }
+  }
+
+  function openModesModal() {
+    renderModes();
+    renderFavChips();
+    $('modesModal').classList.add('open');
+    const input = $('modalModeSearch');
+    if (input) {
+      input.value = '';
+      renderModes();
+      setTimeout(() => input.focus(), 40);
+    }
+  }
+
+  function closeModesModal() {
+    $('modesModal').classList.remove('open');
+  }
+
+  function renderQuickModes() {
+    const grid = $('quickGrid');
+    grid.innerHTML = '';
+    const idxs = [];
+    favorites.slice(0, 4).forEach((i) => idxs.push(i));
+    for (let i = 0; i < effects.length && idxs.length < 4; i++) {
+      if (!idxs.includes(i)) idxs.push(i);
+    }
+    if (!idxs.length) {
+      for (let i = 0; i < 4; i++) idxs.push(i);
+    }
+    idxs.slice(0, 4).forEach((index) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'quick-btn' + (index === state.mode ? ' active' : '');
+      btn.dataset.index = String(index);
+      btn.textContent = effects[index] || `#${index}`;
+      btn.onclick = () => selectMode(index);
+      grid.appendChild(btn);
+    });
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  async function selectMode(index) {
+    stopMusic();
+    state.mode = index;
+    syncControlsUI();
+    renderModes();
+    renderQuickModes();
+    try {
+      await sendCommand(`EFF${index}`, { skipThrottle: true });
+      showToast(`Режим: ${effects[index] || '#' + index}`);
+      closeModesModal();
+    } catch (_) { /* toast already shown */ }
+  }
+
+  async function togglePower() {
+    const next = !state.power;
+    if (!next) stopMusic();
+    state.power = next;
+    syncControlsUI();
+    try {
+      await sendCommand(next ? 'P_ON' : 'P_OFF', { skipThrottle: true });
+    } catch (_) {
+      state.power = !next;
+      syncControlsUI();
+    }
+  }
+
+  function scheduleBri(v) {
+    state.brightness = Math.min(255, Math.max(1, v));
+    syncControlsUI();
+    clearTimeout(briTimer);
+    // skipThrottle: debounce уже ограничивает частоту; иначе throttle может отбросить финальное значение
+    briTimer = setTimeout(
+      () => sendCommand(`BRI${state.brightness}`, { skipThrottle: true }).catch(() => {}),
+      SLIDER_DEBOUNCE_MS
+    );
+  }
+  function scheduleSpd(v) {
+    state.speed = Math.min(255, Math.max(1, v));
+    syncControlsUI();
+    clearTimeout(spdTimer);
+    spdTimer = setTimeout(
+      () => sendCommand(`SPD${state.speed}`, { skipThrottle: true }).catch(() => {}),
+      SLIDER_DEBOUNCE_MS
+    );
+  }
+  function scheduleScl(v) {
+    state.scale = clampScale(v);
+    syncControlsUI();
+    clearTimeout(sclTimer);
+    sclTimer = setTimeout(
+      () => sendCommand(`SCA${state.scale}`, { skipThrottle: true }).catch(() => {}),
+      SLIDER_DEBOUNCE_MS
+    );
+  }
+
+  function openConnModal() {
+    $('connModal').classList.add('open');
+    if (lampIp) $('lampIp').value = lampIp;
+  }
+  function closeConnModal() {
+    $('connModal').classList.remove('open');
+  }
+
+  async function connect() {
+    lampIp = ($('lampIp').value || '').trim() || DEFAULT_HOST;
+    $('lampIp').value = lampIp;
+    if (!lampIp) {
+      setConnStatus('Введите адрес лампы', 'err');
+      return;
+    }
+
+    setConnStatus('Подключение…', '');
+    closeWs();
+
+    if (protocol === 'udp') {
+      try {
+        const ping = await fetch(`${PROXY}/ping`);
+        if (!ping.ok) throw new Error('Прокси не отвечает');
+      } catch (_) {
+        setConnStatus('Прокси не запущен. Запустите: python3 web/web_proxy.py', 'err');
+        return;
+      }
+    } else {
+      try {
+        await openWs(lampIp);
+      } catch (e) {
+        connected = false;
+        updateConnBadge();
+        setConnStatus(e.message || String(e), 'err');
+        return;
+      }
+    }
+
+    try {
+      connected = true;
+      updateConnBadge();
+      await sendCommand('GET', { skipThrottle: true });
+      localStorage.setItem(LS_IP, lampIp);
+      setConnStatus(`Подключено к ${lampIp}`, 'ok');
+      updateConnBadge();
+      silentLoad = true;
+      await loadEffectsFromLamp();
+      silentLoad = false;
+      closeConnModal();
+      showToast(`Подключено: ${lampIp}`);
+
+      if (autoUpdateInterval) clearInterval(autoUpdateInterval);
+      autoUpdateInterval = setInterval(async () => {
+        if (connected && !isUserControlling) {
+          try {
+            await sendCommand('GET', { skipThrottle: true, silent: true });
+          } catch (err) {
+            if (err.message && /fetch|NetworkError|Failed|WebSocket|Нет ответа|не подключён/i.test(err.message)) {
+              connected = false;
+              closeWs();
+              clearInterval(autoUpdateInterval);
+              autoUpdateInterval = null;
+              updateConnBadge();
+              showToast('Потеряно соединение');
+            }
+          }
+        }
+      }, 5000);
+    } catch (e) {
+      connected = false;
+      closeWs();
+      updateConnBadge();
+      setConnStatus(`Не удалось подключиться к ${lampIp}`, 'err');
+      console.error(e);
+    }
+  }
+
+  function disconnect() {
+    stopMusic(false);
+    connected = false;
+    closeWs();
+    if (autoUpdateInterval) {
+      clearInterval(autoUpdateInterval);
+      autoUpdateInterval = null;
+    }
+    updateConnBadge();
+    syncControlsUI();
+    setConnStatus('Отключено', '');
+    showToast('Отключено');
+  }
+
+  async function discover() {
+    if (protocol === 'ws') {
+      setConnStatus('Поиск DISCOVER есть только у UDP. Введите IP вручную или переключитесь на UDP.', 'err');
+      return;
+    }
+    setConnStatus('Поиск лампы на UDP :8888…', '');
+    try {
+      const res = await fetch(`${PROXY}/discover`);
+      const data = await res.json();
+      if (data.success && data.ip) {
+        $('lampIp').value = data.ip;
+        const extra = (data.lamps && data.lamps.length > 1) ? ` (ещё ${data.lamps.length - 1})` : '';
+        setConnStatus(`Найдена: ${data.ip}${extra}`, 'ok');
+        await connect();
+      } else {
+        setConnStatus(data.error || 'Лампа не найдена', 'err');
+      }
+    } catch (_) {
+      setConnStatus('Ошибка поиска. Запустите web_proxy.py', 'err');
+    }
+  }
+
+  function logOta(msg) {
+    const log = $('otaLog');
+    const time = new Date().toLocaleTimeString();
+    log.textContent += `\n[${time}] ${msg}`;
+    log.scrollTop = log.scrollHeight;
+  }
+
+  async function activateOta() {
+    if (!connected) {
+      showToast('Сначала подключитесь к лампе');
+      return;
+    }
+    logOta('Активация режима OTA…');
+    try {
+      await sendCommand('OTA', { skipThrottle: true });
+      await new Promise((r) => setTimeout(r, 500));
+      await sendCommand('OTA', { skipThrottle: true });
+      await new Promise((r) => setTimeout(r, 1000));
+      logOta('Режим OTA активирован (~5 мин). Можно загружать .bin');
+      showToast('OTA активирован');
+    } catch (e) {
+      logOta('Ошибка: ' + (e.message || e));
+    }
+  }
+
+  function onFileSelected(file) {
+    if (!file) return;
+    selectedFile = file;
+    $('dropLabel').textContent = `${file.name} (${Math.round(file.size / 1024)} КБ)`;
+    $('otaDropzone').classList.add('has-file');
+    $('startOtaBtn').disabled = false;
+    logOta(`Выбран файл: ${file.name}, ${file.size} байт`);
+  }
+
+  function uploadFirmware() {
+    if (!selectedFile) return;
+    if (!connected || !lampIp) {
+      showToast('Сначала подключитесь к лампе');
+      return;
+    }
+
+    const barBg = $('otaBarBg');
+    const barFill = $('otaBarFill');
+    const btn = $('startOtaBtn');
+
+    barBg.style.display = 'block';
+    barFill.style.width = '0%';
+    btn.disabled = true;
+    logOta('Загрузка прошивки через прокси /ota…');
+
+    const formData = new FormData();
+    formData.append('firmware', selectedFile);
+    formData.append('ip', lampIp);
+
+    const xhr = new XMLHttpRequest();
+    xhr.upload.addEventListener('progress', (e) => {
+      if (!e.lengthComputable) return;
+      const percent = Math.round((e.loaded / e.total) * 100);
+      barFill.style.width = percent + '%';
+      logOta(`Передача: ${percent}%`);
+    });
+
+    xhr.onload = () => {
+      try {
+        const response = JSON.parse(xhr.responseText || '{}');
+        if (xhr.status === 200 && response.success) {
+          barFill.style.width = '100%';
+          logOta(response.message || 'Прошивка загружена. Устройство перезагружается…');
+          showToast('OTA успешно');
+          connected = false;
+          updateConnBadge();
+        } else {
+          logOta('Ошибка: ' + (response.error || xhr.statusText || xhr.status));
+          btn.disabled = false;
+        }
+      } catch (e) {
+        logOta('Ошибка разбора ответа: ' + e.message);
+        btn.disabled = false;
+      }
+    };
+
+    xhr.onerror = () => {
+      logOta('Сетевая ошибка при загрузке');
+      btn.disabled = false;
+    };
+
+    xhr.open('POST', `${PROXY}/ota`);
+    xhr.send(formData);
+  }
+
+  /* LED matrix preview + музыка */
+  let animTick = 0;
+  const musicLevels = new Array(16).fill(0);
+  let musicHue = 0;
+  let musicActive = false;
+  let musicSource = '';
+  let musicStream = null;
+  let musicCtx = null;
+  let musicAnalyser = null;
+  let musicBins = null;
+  let musicTimer = null;
+  let musicPeak = 30;
+
+  function hsvToRgb(h, s, v) {
+    const i = Math.floor(h / 60) % 6;
+    const f = h / 60 - Math.floor(h / 60);
+    const p = v * (1 - s);
+    const q = v * (1 - f * s);
+    const t = v * (1 - (1 - f) * s);
+    const table = [[v, t, p], [q, v, p], [p, v, t], [p, q, v], [t, p, v], [v, p, q]];
+    const c = table[i] || [0, 0, 0];
+    return c.map((n) => Math.round(n * 255));
+  }
+
+  function setMusicUi() {
+    const label = $('musicState');
+    if (label) {
+      label.textContent = musicActive
+        ? (musicSource === 'tab' ? 'звук вкладки' : 'микрофон')
+        : 'музыка выкл';
+    }
+    $('musicMicBtn').classList.toggle('active', musicActive && musicSource === 'mic');
+    $('musicTabBtn').classList.toggle('active', musicActive && musicSource === 'tab');
+  }
+
+  function sendAudioFrame() {
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    const hue = musicHue & 255;
+    let cmd = 'AUD' + hue.toString(16).padStart(2, '0');
+    for (let i = 0; i < 16; i++) cmd += (musicLevels[i] & 15).toString(16);
+    ws.send(cmd);
+  }
+
+  function sampleMusic() {
+    if (!musicAnalyser || !musicBins) return;
+    musicAnalyser.getByteFrequencyData(musicBins);
+    const nyquist = musicCtx.sampleRate / 2;
+    const logMin = Math.log(45);
+    const logMax = Math.log(12000);
+    let framePeak = 1;
+    const raw = new Array(16);
+    for (let i = 0; i < 16; i++) {
+      const f0 = Math.exp(logMin + (logMax - logMin) * i / 16);
+      const f1 = Math.exp(logMin + (logMax - logMin) * (i + 1) / 16);
+      let b0 = Math.floor(f0 / nyquist * musicBins.length);
+      let b1 = Math.ceil(f1 / nyquist * musicBins.length);
+      b0 = Math.max(1, Math.min(musicBins.length - 1, b0));
+      b1 = Math.max(b0, Math.min(musicBins.length - 1, b1));
+      let sum = 0;
+      for (let b = b0; b <= b1; b++) sum += musicBins[b];
+      raw[i] = sum / (b1 - b0 + 1);
+      if (raw[i] > framePeak) framePeak = raw[i];
+    }
+    musicPeak = Math.max(framePeak, musicPeak * 0.992, 12);
+    for (let i = 0; i < 16; i++) {
+      const target = Math.round((raw[i] / musicPeak) * 15);
+      musicLevels[i] = target >= musicLevels[i] ? target : Math.max(0, musicLevels[i] - 1);
+    }
+    musicHue = (musicHue + 1 + (musicLevels[1] > 10 ? 4 : 0)) & 255;
+    sendAudioFrame();
+  }
+
+  function stopMusic(notifyLamp = true) {
+    if (musicTimer) {
+      clearInterval(musicTimer);
+      musicTimer = null;
+    }
+    if (musicStream) {
+      musicStream.getTracks().forEach((track) => track.stop());
+      musicStream = null;
+    }
+    if (musicCtx) {
+      musicCtx.close().catch(() => {});
+      musicCtx = null;
+    }
+    musicAnalyser = null;
+    musicBins = null;
+    const was = musicActive;
+    musicActive = false;
+    musicSource = '';
+    setMusicUi();
+    if (was && notifyLamp && ws && ws.readyState === WebSocket.OPEN) {
+      ws.send('AUDOFF');
+    }
+  }
+
+  async function startMusic(source) {
+    if (musicActive && musicSource === source) {
+      stopMusic();
+      return;
+    }
+    stopMusic();
+    if (!window.isSecureContext) {
+      showToast('Микрофон доступен только с http://localhost или https');
+      return;
+    }
+    if (protocol !== 'ws' || !ws || ws.readyState !== WebSocket.OPEN) {
+      showToast('Музыка идёт по WebSocket. Подключитесь к лампе');
+      return;
+    }
+    try {
+      musicStream = source === 'tab'
+        ? await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true })
+        : await navigator.mediaDevices.getUserMedia({
+          audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+        });
+    } catch (e) {
+      showToast(source === 'tab' ? 'Нет звука вкладки' : 'Нет доступа к микрофону');
+      return;
+    }
+    const audioTracks = musicStream.getAudioTracks();
+    if (!audioTracks.length) {
+      musicStream.getTracks().forEach((track) => track.stop());
+      musicStream = null;
+      showToast('В захвате нет звука. Включите «Поделиться звуком»');
+      return;
+    }
+    if (source === 'tab') {
+      musicStream.getVideoTracks().forEach((track) => track.stop());
+    }
+    audioTracks[0].addEventListener('ended', () => stopMusic());
+
+    musicCtx = new AudioContext();
+    if (musicCtx.state === 'suspended') await musicCtx.resume();
+    musicAnalyser = musicCtx.createAnalyser();
+    musicAnalyser.fftSize = 512;
+    musicAnalyser.smoothingTimeConstant = 0.55;
+    musicBins = new Uint8Array(musicAnalyser.frequencyBinCount);
+    musicCtx.createMediaStreamSource(musicStream).connect(musicAnalyser);
+    musicActive = true;
+    musicSource = source;
+    musicPeak = 30;
+    setMusicUi();
+    if (!state.power) {
+      state.power = true;
+      syncControlsUI();
+      sendCommand('P_ON', { skipThrottle: true }).catch(() => {});
+    }
+    musicTimer = setInterval(sampleMusic, 50);
+    showToast(source === 'tab' ? 'Слушаю вкладку' : 'Слушаю микрофон');
+  }
+
+  function renderLedMatrix() {
+    animTick++;
+    const w = canvas.width;
+    const h = canvas.height;
+    ctx.fillStyle = '#05070a';
+    ctx.fillRect(0, 0, w, h);
+
+    if (musicActive) {
+      const briFactor = state.brightness / 255;
+      for (let x = 0; x < 16; x++) {
+        const rows = musicLevels[x];
+        const hue = (musicHue + x * 14) % 360;
+        for (let y = 0; y < rows; y++) {
+          const [r, g, b] = hsvToRgb(hue, 1, (0.25 + y / 16) * briFactor);
+          ctx.fillStyle = `rgb(${r},${g},${b})`;
+          const sy = h - 1 - y;
+          ctx.fillRect(x * 2, sy, 2, 1);
+        }
+        if (rows > 0) {
+          ctx.fillStyle = `rgb(${Math.round(255 * briFactor)},${Math.round(255 * briFactor)},${Math.round(255 * briFactor)})`;
+          ctx.fillRect(x * 2, h - rows, 2, 1);
+        }
+      }
+      requestAnimationFrame(renderLedMatrix);
+      return;
+    }
+
+    if (!state.power) {
+      ctx.fillStyle = '#441111';
+      ctx.fillRect(w - 2, h - 2, 1, 1);
+      requestAnimationFrame(renderLedMatrix);
+      return;
+    }
+
+    const briFactor = state.brightness / 255;
+    const spdFactor = state.speed / 100;
+    const sclFactor = state.scale / 50;
+    const modeFamily = state.mode % 8;
+    const t = animTick * spdFactor * 0.05;
+
+    for (let x = 0; x < w; x++) {
+      for (let y = 0; y < h; y++) {
+        let r = 0, g = 0, b = 0;
+        if (modeFamily === 0) {
+          const noise = Math.sin(x * 0.4 * sclFactor + t) * Math.cos(y * 0.2 - t * 2);
+          const heat = Math.max(0, Math.min(1, (1 - y / h) + noise * 0.3));
+          r = Math.floor(255 * heat);
+          g = Math.floor(140 * Math.pow(heat, 2));
+          b = Math.floor(20 * Math.pow(heat, 4));
+        } else if (modeFamily === 1) {
+          const drop = (y + Math.floor(t * 10 + Math.sin(x * 99) * 20)) % h;
+          if (drop === 0) { r = 180; g = 255; b = 180; }
+          else { g = Math.max(0, 255 - drop * 25); }
+        } else if (modeFamily === 2) {
+          const hue = (x * 12 * sclFactor + y * 8 + animTick * spdFactor * 2) % 360;
+          const rad = hue * Math.PI / 180;
+          r = Math.floor((Math.sin(rad) + 1) * 127);
+          g = Math.floor((Math.sin(rad + 2) + 1) * 127);
+          b = Math.floor((Math.sin(rad + 4) + 1) * 127);
+        } else if (modeFamily === 3) {
+          const wave = Math.sin(x * 0.3 * sclFactor + t) + Math.cos(y * 0.4 + t * 0.8);
+          r = Math.floor(Math.max(0, Math.sin(wave) * 80));
+          g = Math.floor(Math.max(0, Math.sin(wave + 1.5) * 255));
+          b = Math.floor(Math.max(0, Math.cos(wave) * 220));
+        } else if (modeFamily === 4) {
+          const flicker = (Math.sin(animTick * 0.2) + Math.random() * 0.4) * 0.2;
+          const intensity = Math.max(0.2, 1 - y / h + flicker);
+          r = Math.floor(255 * intensity);
+          g = Math.floor(130 * intensity);
+          b = Math.floor(20 * intensity);
+        } else if (modeFamily === 5) {
+          const blob = Math.sin(x * 0.25 * sclFactor + t) * Math.sin(y * 0.3 - t * 0.5);
+          r = blob > 0 ? 255 : 40;
+          b = blob > 0 ? 120 : 255;
+        } else if (modeFamily === 6) {
+          if (Math.random() < 0.05 * spdFactor) { r = g = b = 255; }
+          else { r = 10; g = 15; b = 35; }
+        } else {
+          r = 255; g = 200; b = 130;
+        }
+        ctx.fillStyle = `rgb(${Math.floor(r * briFactor)},${Math.floor(g * briFactor)},${Math.floor(b * briFactor)})`;
+        ctx.fillRect(x, y, 1, 1);
+      }
+    }
+    requestAnimationFrame(renderLedMatrix);
+  }
+
+  async function autoConnectOnStart() {
+    setProtocol(protocol);
+    const savedIp = (localStorage.getItem(LS_IP) || '').trim();
+    const host = (!savedIp || /^\d{1,3}(\.\d{1,3}){3}$/.test(savedIp)) ? DEFAULT_HOST : savedIp;
+    if (host) {
+      $('lampIp').value = host;
+      lampIp = host;
+      setConnStatus(`Подключение к ${host}…`, '');
+      await connect();
+      if (connected) return;
+    }
+    if (protocol === 'ws') {
+      setConnStatus('Не удалось открыть ws://gyverlamp.lan:81', 'err');
+      openConnModal();
+      return;
+    }
+    setConnStatus('Ищем лампу…', '');
+    try {
+      const res = await fetch(`${PROXY}/discover`);
+      const data = await res.json();
+      if (data.success && data.ip) {
+        $('lampIp').value = data.ip;
+        await connect();
+        return;
+      }
+      setConnStatus(data.error || 'Лампа не найдена', 'err');
+      openConnModal();
+    } catch (_) {
+      setConnStatus('Прокси недоступен. Запустите web_proxy.py', 'err');
+      openConnModal();
+    }
+  }
+
+  /* Wire UI */
+  document.querySelectorAll('.tab-btn').forEach((btn) => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+  $('gotoModes').onclick = () => openModesModal();
+  $('effectLabel').onclick = () => openModesModal();
+  $('modesModalClose').onclick = closeModesModal;
+  $('modesModal').addEventListener('click', (e) => {
+    if (e.target === $('modesModal')) closeModesModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if ($('modesModal').classList.contains('open')) closeModesModal();
+    else if ($('connModal').classList.contains('open')) closeConnModal();
+  });
+  $('connBadge').onclick = openConnModal;
+  $('connModalClose').onclick = closeConnModal;
+  $('connModal').addEventListener('click', (e) => {
+    if (e.target === $('connModal')) closeConnModal();
+  });
+  $('connectBtn').onclick = connect;
+  $('disconnectBtn').onclick = disconnect;
+  $('discoverBtn').onclick = discover;
+  $('protoUdpBtn').onclick = () => setProtocol('udp');
+  $('protoWsBtn').onclick = () => setProtocol('ws');
+  $('lampIp').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') connect();
+  });
+
+  $('powerBtn').onclick = togglePower;
+  $('powerQuick').onclick = togglePower;
+  $('musicMicBtn').onclick = () => startMusic('mic');
+  $('musicTabBtn').onclick = () => startMusic('tab');
+
+  briSlider.oninput = (e) => scheduleBri(parseInt(e.target.value, 10));
+  spdSlider.oninput = (e) => scheduleSpd(parseInt(e.target.value, 10));
+  sclSlider.oninput = (e) => scheduleScl(parseInt(e.target.value, 10));
+
+  document.querySelectorAll('#briPresets button').forEach((btn) => {
+    btn.onclick = () => scheduleBri(Math.round((Number(btn.dataset.pct) / 100) * 255));
+  });
+  $('spdMinus').onclick = () => scheduleSpd(Math.max(1, state.speed - 15));
+  $('spdPlus').onclick = () => scheduleSpd(Math.min(255, state.speed + 15));
+  $('sclMinus').onclick = () => scheduleScl(state.scale - 10);
+  $('sclPlus').onclick = () => scheduleScl(state.scale + 10);
+
+  $('modeSearch').oninput = () => renderModes();
+  $('modalModeSearch').oninput = () => renderModes();
+
+  const dropzone = $('otaDropzone');
+  const fileInput = $('firmwareFile');
+  dropzone.onclick = () => fileInput.click();
+  fileInput.onchange = () => onFileSelected(fileInput.files && fileInput.files[0]);
+  dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag'); });
+  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+  dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('drag');
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) onFileSelected(e.dataTransfer.files[0]);
+  });
+  $('activateOtaBtn').onclick = activateOta;
+  $('startOtaBtn').onclick = uploadFirmware;
+
+  loadFavorites();
+  setProtocol(protocol);
+  effects = fallbackEffects();
+  renderModes();
+  renderQuickModes();
+  renderFavChips();
+  syncControlsUI();
+  updateConnBadge();
+  renderLedMatrix();
+
+  autoConnectOnStart();
+})();
+</script>
+</body>
+</html>

@@ -373,7 +373,11 @@ uint32_t blynkTimer;
 #elif defined(ESP32)
   #define WDT_FEED() yield()
 #else
-  #define WDT_FEED()
+#define WDT_FEED()
+#endif
+
+#if (LAMP_NET_MODE == 1U)
+#include "WsManager.h"
 #endif
 
 // --- ИНИЦИАЛИЗАЦИЯ ОБЪЕКТОВ ----------
@@ -928,8 +932,12 @@ void setup()
   ESP.wdtFeed();                                            // пнуть собаку
 #endif
 
+#if (LAMP_NET_MODE == 1U)
+  WsManager::begin();
+#else
   LOG.printf_P(PSTR("Порт UDP сервера: %u\n"), localPort);
   Udp.begin(localPort);
+#endif
 
 
   // NTP

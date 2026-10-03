@@ -1,0 +1,6 @@
+{
+  "name": "Smart Lamp Controller",
+  "description": "Интерфейс управления умной лампой: яркость, скорость, масштаб, выбор режимов и OTA прошивка (ESP8266/ESP32).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

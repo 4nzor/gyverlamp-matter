@@ -553,6 +553,13 @@ uint8_t espMode = ESP_MODE;                                 // ESP_MODE може
 #define ESP_RESET_ON_START    (false)                       // true - если при старте нажата кнопка (или кнопки нет!), сохранённые настройки будут сброшены; false - не будут
 #define ESP_HTTP_PORT         (80U)                         // номер порта, который будет использоваться во время первой утановки имени WiFi сети (и пароля), к которой потом будет подключаться лампа в режиме WiFi клиента (лучше не менять)
 #define ESP_UDP_PORT          (8888U)                       // номер порта, который будет "слушать" UDP сервер во время работы лампы как в режиме WiFi точки доступа, так и в режиме WiFi клиента (лучше не менять)
+#define ESP_WS_PORT           (81U)                         // WebSocket, если LAMP_NET_MODE == 1U (ws://<ip>:81)
+#define LAMP_NET_MODE         (1U)                          // 0U — UDP :8888 (приложение Gyver, Matter / Алиса / Apple Home); 1U — WebSocket (те же текстовые команды)
+#if (LAMP_NET_MODE == 1U)
+#define LAMP_CTRL_PORT        ESP_WS_PORT
+#else
+#define LAMP_CTRL_PORT        ESP_UDP_PORT
+#endif
 #define WIFIMAN_DEBUG         (false)                       // вывод отладочных сообщений при подключении к WiFi сети: true - выводятся, false - не выводятся; настройка не зависит от GENERAL_DEBUG
 #define OTA                                                 // если строка не закомментирована, модуль будет ждать два последовательных запроса пользователя на прошивку по воздуху (два четрёхкратных нажатия на кнопку)
 #ifdef OTA

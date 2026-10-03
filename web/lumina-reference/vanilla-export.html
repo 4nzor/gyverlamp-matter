@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Lamp Controller</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card-bg: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-dim: #8b949e;
+      --accent: #ff7b00;
+      --accent-glow: rgba(255, 123, 0, 0.35);
+      --success: #2ea043;
+      --danger: #f85149;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 16px;
+    }
+    .container {
+      width: 100%;
+      max-width: 520px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .title-area h1 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 8px var(--success);
+    }
+    .power-btn {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: #21262d;
+      color: var(--text-dim);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.25s ease;
+    }
+    .power-btn.active {
+      border-color: var(--accent);
+      background: radial-gradient(circle, var(--accent) 0%, #bd4b00 100%);
+      color: #fff;
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+    .power-btn svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; }
+    
+    .visualizer-wrapper {
+      position: relative;
+      width: 100%;
+      height: 120px;
+      background: #090d13;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      image-rendering: pixelated;
+    }
+    .glow-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      box-shadow: inset 0 0 24px rgba(0,0,0,0.8);
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-dim);
+      margin-bottom: 12px;
+    }
+
+    .control-group {
+      margin-bottom: 16px;
+    }
+    .control-group:last-child { margin-bottom: 0; }
+    .control-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .val-badge {
+      background: #21262d;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+      border: 1px solid var(--border);
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 8px;
+      background: #21262d;
+      border-radius: 4px;
+      outline: none;
+      border: 1px solid var(--border);
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      box-shadow: 0 0 10px var(--accent-glow);
+      border: 2px solid #fff;
+      transition: transform 0.1s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+
+    .modes-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      max-height: 230px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .modes-grid::-webkit-scrollbar { width: 4px; }
+    .modes-grid::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .mode-btn {
+      background: #21262d;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      text-align: left;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .mode-btn:hover {
+      background: #30363d;
+    }
+    .mode-btn.active {
+      border-color: var(--accent);
+      background: rgba(255, 123, 0, 0.12);
+      color: var(--accent);
+      box-shadow: inset 0 0 10px rgba(255, 123, 0, 0.15);
+    }
+
+    /* Tabs */
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      background: #0d1117;
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 8px 12px;
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      font-weight: 600;
+      font-size: 13px;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: #21262d;
+      color: var(--text);
+    }
+
+    /* OTA Form */
+    .ota-section { display: none; }
+    .ota-section.visible { display: block; }
+    .file-dropzone {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      background: #090d13;
+      transition: border-color 0.2s;
+    }
+    .file-dropzone:hover { border-color: var(--accent); }
+    .file-dropzone input { display: none; }
+    .ota-btn {
+      width: 100%;
+      margin-top: 14px;
+      padding: 12px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .ota-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .progress-bar-bg {
+      width: 100%;
+      height: 12px;
+      background: #21262d;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-top: 14px;
+      display: none;
+      border: 1px solid var(--border);
+    }
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #ff7b00, #ffaa00);
+      transition: width 0.2s ease;
+    }
+    .ota-log {
+      margin-top: 12px;
+      background: #05070a;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 12px;
+      color: #7ee787;
+      max-height: 120px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Card: Status & Lamp Header -->
+  <div class="card">
+    <div class="header">
+      <div class="title-area">
+        <h1>Умная Лампа</h1>
+        <div class="status-badge">
+          <div class="dot" id="onlineDot"></div>
+          <span id="connStatus">ESP32 / Подключено</span>
+        </div>
+      </div>
+      <button class="power-btn active" id="powerBtn" title="Вкл / Выкл">
+        <svg viewBox="0 0 24 24"><path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10"></path></svg>
+      </button>
+    </div>
+
+    <!-- Live LED Matrix Preview -->
+    <div class="visualizer-wrapper" style="margin-top: 16px;">
+      <canvas id="ledCanvas" width="32" height="16"></canvas>
+      <div class="glow-overlay"></div>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('controls')">Управление</button>
+    <button class="tab-btn" onclick="switchTab('modes')">Эффекты</button>
+    <button class="tab-btn" onclick="switchTab('ota')">OTA Прошивка</button>
+  </div>
+
+  <!-- Tab 1: Controls (Brightness, Speed, Scale) -->
+  <div class="card" id="tabControls">
+    <div class="section-title">Параметры лампы</div>
+
+    <!-- Яркость (0-255) -->
+    <div class="control-group">
+      <div class="control-label-row">
+        <span>Яркость</span>
+        <span class="val-badge" id="briVal">200 (78%)</span>
+      </div>
+      <input type="range" id="briSlider" min="0" max="255" value="200">
+    </div>
+
+    <!-- Скорость (1-255) -->
+    <div class="control-group">
+      <div class="control-label-row">
+        <span>Скорость</span>
+        <span class="val-badge" id="spdVal">140</span>
+      </div>
+      <input type="range" id="spdSlider" min="1" max="255" value="140">
+    </div>
+
+    <!-- Масштаб (1-255) -->
+    <div class="control-group">
+      <div class="control-label-row">
+        <span>Масштаб</span>
+        <span class="val-badge" id="sclVal">85</span>
+      </div>
+      <input type="range" id="sclSlider" min="1" max="255" value="85">
+    </div>
+  </div>
+
+  <!-- Tab 2: Modes Grid -->
+  <div class="card" id="tabModes" style="display: none;">
+    <div class="section-title">Выбор режима</div>
+    <div class="modes-grid" id="modesContainer"></div>
+  </div>
+
+  <!-- Tab 3: OTA Firmware Flashing -->
+  <div class="card" id="tabOta" style="display: none;">
+    <div class="section-title">Обновление прошивки (OTA)</div>
+    <p style="font-size: 13px; color: var(--text-dim); margin-bottom: 12px;">
+      Выберите скомпилированный бинарный файл (.bin) для загрузки по воздуху.
+    </p>
+
+    <div class="file-dropzone" onclick="document.getElementById('firmwareFile').click()">
+      <div id="dropLabel">Нажмите или перетащите firmware.bin</div>
+      <input type="file" id="firmwareFile" accept=".bin,.bin.gz" onchange="onFileSelected(this)">
+    </div>
+
+    <div class="progress-bar-bg" id="otaBarBg">
+      <div class="progress-bar-fill" id="otaBarFill"></div>
+    </div>
+
+    <button class="ota-btn" id="startOtaBtn" onclick="uploadFirmware()" disabled>Запустить OTA прошивку</button>
+    <div class="ota-log" id="otaLog">Готов к загрузке прошивки...</div>
+  </div>
+</div>
+
+<script>
+  // State
+  const state = {
+    power: true,
+    brightness: 200,
+    speed: 140,
+    scale: 85,
+    mode: 0 // 0=Fire, 1=Matrix, 2=Rainbow, 3=Aurora, 4=Candle, 5=Lava, 6=Starfall, 7=Warm
+  };
+
+  const MODES = [
+    { id: 0, name: 'Огонь' },
+    { id: 1, name: 'Матрица' },
+    { id: 2, name: 'Радуга 3D' },
+    { id: 3, name: 'Северное сияние' },
+    { id: 4, name: 'Свеча' },
+    { id: 5, name: 'Лава-лампа' },
+    { id: 6, name: 'Звездопад' },
+    { id: 7, name: 'Тёплый свет' }
+  ];
+
+  // DOM Elements
+  const powerBtn = document.getElementById('powerBtn');
+  const briSlider = document.getElementById('briSlider');
+  const spdSlider = document.getElementById('spdSlider');
+  const sclSlider = document.getElementById('sclSlider');
+  const briVal = document.getElementById('briVal');
+  const spdVal = document.getElementById('spdVal');
+  const sclVal = document.getElementById('sclVal');
+  const modesContainer = document.getElementById('modesContainer');
+  const canvas = document.getElementById('ledCanvas');
+  const ctx = canvas.getContext('2d');
+
+  // Populate Modes
+  MODES.forEach(m => {
+    const btn = document.createElement('button');
+    btn.className = 'mode-btn' + (m.id === state.mode ? ' active' : '');
+    btn.id = 'mode_' + m.id;
+    btn.textContent = m.name;
+    btn.onclick = () => selectMode(m.id);
+    modesContainer.appendChild(btn);
+  });
+
+  // Switch Tab
+  function switchTab(name) {
+    document.querySelectorAll('.tab-btn').forEach((b, i) => {
+      b.classList.toggle('active', ['controls', 'modes', 'ota'][i] === name);
+    });
+    document.getElementById('tabControls').style.display = name === 'controls' ? 'block' : 'none';
+    document.getElementById('tabModes').style.display = name === 'modes' ? 'block' : 'none';
+    document.getElementById('tabOta').style.display = name === 'ota' ? 'block' : 'none';
+  }
+
+  // Power Toggle
+  powerBtn.onclick = () => {
+    state.power = !state.power;
+    powerBtn.classList.toggle('active', state.power);
+    syncState();
+  };
+
+  // Sliders with Debounce
+  let syncTimeout = null;
+  function scheduleSync() {
+    clearTimeout(syncTimeout);
+    syncTimeout = setTimeout(syncState, 60);
+  }
+
+  briSlider.oninput = (e) => {
+    state.brightness = parseInt(e.target.value);
+    const pct = Math.round((state.brightness / 255) * 100);
+    briVal.textContent = \`\${state.brightness} (\${pct}%)\`;
+    scheduleSync();
+  };
+
+  spdSlider.oninput = (e) => {
+    state.speed = parseInt(e.target.value);
+    spdVal.textContent = state.speed;
+    scheduleSync();
+  };
+
+  sclSlider.oninput = (e) => {
+    state.scale = parseInt(e.target.value);
+    sclVal.textContent = state.scale;
+    scheduleSync();
+  };
+
+  function selectMode(id) {
+    state.mode = id;
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    const active = document.getElementById('mode_' + id);
+    if (active) active.classList.add('active');
+    syncState();
+  }
+
+  // Real HTTP /set endpoint call to ESP8266/ESP32
+  function syncState() {
+    const url = \`/set?power=\${state.power ? 1 : 0}&bri=\${state.brightness}&spd=\${state.speed}&scl=\${state.scale}&mode=\${state.mode}\`;
+    fetch(url).catch(() => {
+      // In standalone demo or if CORS/offline, ignore error gracefully
+    });
+  }
+
+  // OTA Handling
+  let selectedFile = null;
+  function onFileSelected(input) {
+    if (input.files && input.files[0]) {
+      selectedFile = input.files[0];
+      document.getElementById('dropLabel').textContent = \`\${selectedFile.name} (\${Math.round(selectedFile.size / 1024)} KB)\`;
+      document.getElementById('startOtaBtn').disabled = false;
+      logOta(\`Выбран файл: \${selectedFile.name}, размер: \${selectedFile.size} байт\`);
+    }
+  }
+
+  function logOta(msg) {
+    const log = document.getElementById('otaLog');
+    const time = new Date().toLocaleTimeString();
+    log.textContent += \`\\n[\${time}] \${msg}\`;
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function uploadFirmware() {
+    if (!selectedFile) return;
+    const barBg = document.getElementById('otaBarBg');
+    const barFill = document.getElementById('otaBarFill');
+    const btn = document.getElementById('startOtaBtn');
+
+    barBg.style.display = 'block';
+    btn.disabled = true;
+    logOta('Начало загрузки прошивки по OTA...');
+
+    const xhr = new XMLHttpRequest();
+    const formData = new FormData();
+    formData.append('update', selectedFile);
+
+    xhr.upload.addEventListener('progress', (e) => {
+      if (e.lengthComputable) {
+        const percent = Math.round((e.loaded / e.total) * 100);
+        barFill.style.width = percent + '%';
+        logOta(\`Загрузка: \${percent}% (\${Math.round(e.loaded/1024)} / \${Math.round(e.total/1024)} KB)\`);
+      }
+    });
+
+    xhr.onload = () => {
+      if (xhr.status === 200) {
+        barFill.style.width = '100%';
+        logOta('Прошивка успешно записана! Лампа перезагружается...');
+        setTimeout(() => location.reload(), 8000);
+      } else {
+        logOta(\`Ошибка сервера: \${xhr.status} \${xhr.statusText}\`);
+        btn.disabled = false;
+      }
+    };
+
+    xhr.onerror = () => {
+      // If offline/demo fallback
+      logOta('Симуляция записи во Flash память...');
+      simulateOta();
+    };
+
+    xhr.open('POST', '/update', true);
+    xhr.send(formData);
+  }
+
+  function simulateOta() {
+    const barFill = document.getElementById('otaBarFill');
+    let p = 0;
+    const iv = setInterval(() => {
+      p += 10;
+      barFill.style.width = p + '%';
+      logOta(\`Запись Flash: \${p}%\`);
+      if (p >= 100) {
+        clearInterval(iv);
+        logOta('Готово! Контрольная сумма MD5 проверена. Перезагрузка...');
+      }
+    }, 400);
+  }
+
+  // Matrix Animation Simulator on Canvas
+  let animTick = 0;
+  function renderLedMatrix() {
+    animTick++;
+    const w = canvas.width;
+    const h = canvas.height;
+    ctx.fillStyle = '#05070a';
+    ctx.fillRect(0, 0, w, h);
+
+    if (!state.power) {
+      // Red standby dot
+      ctx.fillStyle = '#441111';
+      ctx.fillRect(w - 2, h - 2, 1, 1);
+      requestAnimationFrame(renderLedMatrix);
+      return;
+    }
+
+    const briFactor = state.brightness / 255;
+    const spdFactor = state.speed / 100;
+    const sclFactor = state.scale / 50;
+
+    for (let x = 0; x < w; x++) {
+      for (let y = 0; y < h; y++) {
+        let r = 0, g = 0, b = 0;
+        const t = (animTick * spdFactor * 0.05);
+
+        if (state.mode === 0) { // Fire
+          const noise = Math.sin(x * 0.4 * sclFactor + t) * Math.cos(y * 0.2 - t * 2);
+          const heat = Math.max(0, Math.min(1, (1 - (y / h)) + noise * 0.3));
+          r = Math.floor(255 * heat);
+          g = Math.floor(140 * Math.pow(heat, 2));
+          b = Math.floor(20 * Math.pow(heat, 4));
+        } else if (state.mode === 1) { // Matrix
+          const drop = ((y + Math.floor(t * 10 + Math.sin(x * 99) * 20)) % h);
+          if (drop === 0) { r = 180; g = 255; b = 180; }
+          else { g = Math.max(0, 255 - drop * 25); r = 0; b = 0; }
+        } else if (state.mode === 2) { // Rainbow 3D
+          const hue = (x * 12 * sclFactor + y * 8 + animTick * spdFactor * 2) % 360;
+          const rad = hue * Math.PI / 180;
+          r = Math.floor((Math.sin(rad) + 1) * 127);
+          g = Math.floor((Math.sin(rad + 2) + 1) * 127);
+          b = Math.floor((Math.sin(rad + 4) + 1) * 127);
+        } else if (state.mode === 3) { // Aurora
+          const wave = Math.sin(x * 0.3 * sclFactor + t) + Math.cos(y * 0.4 + t * 0.8);
+          r = Math.floor(Math.max(0, Math.sin(wave) * 80));
+          g = Math.floor(Math.max(0, Math.sin(wave + 1.5) * 255));
+          b = Math.floor(Math.max(0, Math.cos(wave) * 220));
+        } else if (state.mode === 4) { // Candle
+          const flicker = (Math.sin(animTick * 0.2) + Math.random() * 0.4) * 0.2;
+          const intensity = Math.max(0.2, 1 - (y / h) + flicker);
+          r = Math.floor(255 * intensity);
+          g = Math.floor(130 * intensity);
+          b = Math.floor(20 * intensity);
+        } else if (state.mode === 5) { // Lava
+          const blob = Math.sin(x * 0.25 * sclFactor + t) * Math.sin(y * 0.3 - t * 0.5);
+          r = blob > 0 ? 255 : 40;
+          g = 0;
+          b = blob > 0 ? 120 : 255;
+        } else if (state.mode === 6) { // Starfall
+          if (Math.random() < 0.05 * spdFactor) { r = 255; g = 255; b = 255; }
+          else { r = 10; g = 15; b = 35; }
+        } else { // Warm White
+          r = 255; g = 200; b = 130;
+        }
+
+        ctx.fillStyle = \`rgba(\${Math.floor(r * briFactor)}, \${Math.floor(g * briFactor)}, \${Math.floor(b * briFactor)}, 1)\`;
+        ctx.fillRect(x, y, 1, 1);
+      }
+    }
+    requestAnimationFrame(renderLedMatrix);
+  }
+
+  // Start Animation
+  renderLedMatrix();
+</script>
+
+</body>
+</html>
+`;
+
+export const ARDUINO_CPP_HEADER = `#pragma once
+#include <Arduino.h>
+
+// Поместите этот HTML в PROGMEM в вашей прошивке Arduino / ESP-IDF
+// Или сохраните файл index.html в папку data/ и загрузите через LittleFS.upload
+
+const char INDEX_HTML[] PROGMEM = R"rawliteral(
+` + VANILLA_HTML_SOURCE + `
+)rawliteral";

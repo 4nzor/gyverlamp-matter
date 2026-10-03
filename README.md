@@ -21,6 +21,7 @@
 | [`lamp/gunner47_v2.87in1/`](lamp/gunner47_v2.87in1/) | Прошивка лампы (ESP32‑C3 + WS2812B) |
 | [`matter-bridge/`](matter-bridge/) | Мост **esp-matter** (ESP-IDF) |
 | [`tasmota-bridge/`](tasmota-bridge/) | Мост **Tasmota** + Berry (без IDF) |
+| [`web/`](web/) | Веб-пульт: UDP через прокси или WebSocket `:81` |
 
 ## Какой мост выбрать
 
@@ -47,6 +48,8 @@ Wi‑Fi для моста обычно приходит при pairing — не 
 | QR payload | `MT:Y.K9042C00KA0648G00` |
 
 Обычный `flash` **без** `erase-flash` сохраняет Matter fabric.
+
+Транспорт команд лампы — `LAMP_NET_MODE` в `lamp/gunner47_v2.87in1/Constants.h`. В этом дереве стоит `1U`: WebSocket `ws://<ip>:81`, те же команды (`P_ON`, `BRI`, `EFF`, `GET`…). `0U` возвращает UDP `:8888` для Matter, Алисы, Apple Home и приложения Gyver.
 
 ## Комплектующие
 
@@ -87,6 +90,16 @@ Wi‑Fi для моста обычно приходит при pairing — не 
 Код репозитория (мост, документация и доработки) — [MIT](LICENSE), © 2026 Anzor Magomedov.
 
 База лампы — **gunner47 / [GyverLamp](https://github.com/AlexGyver/GyverLamp)**; у `esp-matter` и прочих зависимостей — свои лицензии.
+
+## Веб-пульт
+
+```bash
+cd web
+python3 -m http.server 8765
+# открыть http://localhost:8765/web_control.html
+```
+
+Адрес по умолчанию — `gyverlamp.lan`, транспорт **WebSocket** (`ws://gyverlamp.lan:81`). Микрофон и звук вкладки рисуют спектр на матрице. Для UDP нужен `python3 web_proxy.py` и `LAMP_NET_MODE 0U` на лампе. Страницу открывай с `http://localhost`: из файла браузер не отдаёт микрофон.
 
 ## Для ИИ-агентов
 
