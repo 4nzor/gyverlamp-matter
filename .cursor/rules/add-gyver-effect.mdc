@@ -1,0 +1,34 @@
+---
+description: How to add a new lamp effect to the GyverLamp firmware (and expose it via Matter scenes)
+globs: lamp/gunner47_v2.87in1/**,matter-bridge/main/gyver_scenes.c
+alwaysApply: false
+---
+
+# Adding a Gyver lamp effect
+
+Do **not** create one file per effect. Put the code into the existing files.
+All paths are under `lamp/gunner47_v2.87in1/`.
+
+## Steps
+
+1. **Number and constant** — `Constants.h`: add `#define EFF_<NAME> (<N>U)` after the last
+   `EFF_*` (the running text `EFF_TEXT` must stay **last**, so insert before it and shift it).
+2. **Count** — `Constants.h`: bump `MODE_AMOUNT` (currently `94U`).
+3. **Routine** — `effects.ino` (or `noiseEffects.ino` for noise-based ones): add
+   `void <name>Routine()`.
+4. **Dispatch** — `effectTicker.ino`: add `case EFF_<NAME>: <name>Routine(); break;`.
+5. **App registry** — `Constants.h`, `efList_1/2/3`: add `String("<N>. Name,minSpeed,maxSpeed,minScale,maxScale,colorSel;") +`.
+   Keep the three lists roughly equal in size; no spaces except in the effect name.
+6. **Defaults** — `Constants.h`, `defaultSettings[][3]`: add `{ brightness, speed, scale }, // Name`
+   at the same index as the effect number.
+7. **Check** — `MODE_AMOUNT`, the registry, `defaultSettings` and the `EFF_*` numbers must all agree.
+   Build the sketch for ESP32-C3 in Arduino IDE.
+
+## Optional: voice scene (esp-matter bridge)
+
+If the effect should be reachable from Alice / Apple Home:
+
+1. Add a row to `s_scenes[]` in `matter-bridge/main/gyver_scenes.c`
+   (`name, hue°, bri 0–255, eff, spd`). Pick a hue/brightness not within ±15° / ±18 of an existing scene.
+2. Add the same row to `matter-bridge/ALICE_SCENES.md` and `ALICE_SCENES.en.md`.
+3. Run host tests: `cd matter-bridge/host_tests && make`.
