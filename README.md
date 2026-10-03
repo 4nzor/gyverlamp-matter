@@ -1,6 +1,6 @@
 <div align="center">
 
-# 💡 GyverLamp + Matter
+# GyverLamp + Matter
 
 **«Алиса, включи лампу». «Привет, Siri, сделай лампу синей».**
 Лампа Gyver в **Яндекс Алисе** и **Apple Home** — без Home Assistant, без облаков и самописных навыков.
@@ -11,32 +11,32 @@
 [![ESP32](https://img.shields.io/badge/ESP32--C6%20%7C%20S3%20%7C%20C3-E7352C?style=for-the-badge&logo=espressif&logoColor=white)](https://www.espressif.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
-[English](README.en.md) · [Что нужно](#-что-нужно) · [Быстрый старт](#-быстрый-старт) · [Какой мост выбрать](#-какой-мост-выбрать) · [Сцены](#-сцены-и-эффекты) · [Веб-пульт](#-веб-пульт)
+[English](README.en.md) · [Что нужно](#needs) · [Быстрый старт](#start) · [Какой мост выбрать](#bridge) · [Сцены](#scenes) · [Веб-пульт](#web)
 
 </div>
 
 ---
 
-## ✨ Что получаешь
+## <img src="docs/icons/sparkles.svg" width="26" align="center"> Что получаешь
 
-- 🗣 **Голос:** включение, яркость и цвет через Алису и Siri.
-- 🍏 **Apple Home и «Дом с Алисой»:** одно Matter-устройство видят обе экосистемы и любые другие Matter-контроллеры.
-- 🚫 **Без Home Assistant:** мост — одна плата ESP32.
-- 🎨 **Сцены вместо 90 эффектов:** Алиса не умеет показывать названия эффектов Gyver, поэтому «цвет + яркость» превращаются в нужный `EFF` (таблица сцен правится в одном файле).
-- 🧰 **Два моста на выбор:** с ESP-IDF и без него (Tasmota + Berry).
-- 🌐 **Веб-пульт в комплекте:** управление из браузера, спектр с микрофона или звука вкладки на матрице.
+- **Голос:** включение, яркость и цвет через Алису и Siri.
+- **Apple Home и «Дом с Алисой»:** одно Matter-устройство видят обе экосистемы и любые другие Matter-контроллеры.
+- **Без Home Assistant:** мост — одна плата ESP32.
+- **Сцены вместо 90 эффектов:** Алиса не умеет показывать названия эффектов Gyver, поэтому «цвет + яркость» превращаются в нужный `EFF` (таблица сцен правится в одном файле).
+- **Два моста на выбор:** с ESP-IDF и без него (Tasmota + Berry).
+- **Веб-пульт в комплекте:** управление из браузера, спектр с микрофона или звука вкладки на матрице.
 
-## 🧩 Как это работает
+## <img src="docs/icons/flow.svg" width="26" align="center"> Как это работает
 
 ```mermaid
 flowchart LR
-    A["🗣 Алиса<br/>Apple Home"] -- Matter --> B["📡 Мост<br/>ESP32-C6 / S3"]
-    B -- "UDP :8888" --> C["💡 Лампа<br/>ESP32-C3 + 16×16"]
+    A["Алиса<br/>Apple Home"] -- Matter --> B["Мост<br/>ESP32-C6 / S3"]
+    B -- "UDP :8888" --> C["Лампа<br/>ESP32-C3 + 16×16"]
 ```
 
 Мост показывается контроллерам как Matter-лампа (Extended Color Light, цвет по Hue/Saturation) и переводит команды в протокол Gyver: `P_ON`, `P_OFF`, `BRI`, `SPD`, `EFF`.
 
-## 📦 Что в репозитории
+## <img src="docs/icons/folder.svg" width="26" align="center"> Что в репозитории
 
 | Папка | Зачем |
 |:------|:------|
@@ -45,20 +45,20 @@ flowchart LR
 | [`tasmota-bridge/`](tasmota-bridge/) | Мост на **Tasmota + Berry** (без IDF) |
 | [`web/`](web/) | Веб-пульт: UDP через прокси или WebSocket `:81` |
 
-## 🔀 Какой мост выбрать
+## <a id="bridge"></a><img src="docs/icons/split.svg" width="26" align="center"> Какой мост выбрать
 
-| | 🟢 [Tasmota](tasmota-bridge/README.md) | 🔵 [esp-matter](matter-bridge/README.md) |
+| | [Tasmota](tasmota-bridge/README.md) | [esp-matter](matter-bridge/README.md) |
 |:--|:--|:--|
 | Нужен ESP-IDF | нет | да (v5.5.x) |
 | Как ставить | прошил Tasmota → залил `autoexec.be` | сборка и прошивка через IDF |
-| Таблица сцен | — (только красный → огонь, зелёный/синий → следующий эффект) | ✅ `gyver_scenes.c` |
-| Pairing с Алисой | работает, но менее надёжно | ✅ основной путь |
-| Править мост на C++ | — | ✅ |
+| Таблица сцен | — (только красный → огонь, зелёный/синий → следующий эффект) | `gyver_scenes.c` |
+| Pairing с Алисой | работает, но менее надёжно | основной путь |
+| Править мост на C++ | — | да |
 | Для кого | быстрый старт | кастомизация, сцены |
 
 > Не получается с ESP-IDF — бери Tasmota. Нужны сцены и стабильная Алиса — esp-matter.
 
-## 🧾 Что нужно
+## <a id="needs"></a><img src="docs/icons/checklist.svg" width="26" align="center"> Что нужно
 
 | | |
 |:--|:--|
@@ -69,7 +69,7 @@ flowchart LR
 | Мост Tasmota | только браузер и [веб-установщик](https://tasmota.github.io/install/) |
 | Контроллер | Алиса («Дом с Алисой») или Apple Home (хаб: HomePod / Apple TV / iPad) |
 
-## 🚀 Быстрый старт
+## <a id="start"></a><img src="docs/icons/rocket.svg" width="26" align="center"> Быстрый старт
 
 1. **Собери лампу.** Матрица 16×16 на ESP32‑C3. В `Constants.h` поставь `LAMP_NET_MODE (0U)` — мост говорит с лампой только по UDP. Прошей [`lamp/gunner47_v2.87in1/`](lamp/gunner47_v2.87in1/) из Arduino IDE (имя папки = имя `.ino`). Data → `LED_PIN` в `Constants.h` (по умолчанию **4**). Питание матрицы — от БП **5 В / 3–5 А**, не от USB платы.
 2. **Пропиши Wi‑Fi лампы.**
@@ -93,7 +93,7 @@ Wi‑Fi для моста приходит при pairing, не прописыв
 > **Транспорт лампы.** Его задаёт `LAMP_NET_MODE` в `lamp/gunner47_v2.87in1/Constants.h`. В этом дереве стоит `1U` (WebSocket `ws://<ip>:81`), а **мост Matter говорит с лампой только по UDP** — с `1U` лампа его не услышит. Для моста, Алисы, Apple Home и приложения Gyver поставь **`0U`** (UDP `:8888`) и перепрошей лампу.
 
 <details>
-<summary><b>🔑 Коды pairing (демо esp-matter)</b></summary>
+<summary><b>Коды pairing (демо esp-matter)</b></summary>
 
 | | |
 |:--|:--|
@@ -109,24 +109,24 @@ VID `0xFFF1` — тестовый Vendor ID из стандарта Matter: го
 
 </details>
 
-## 🎨 Сцены и эффекты
+## <a id="scenes"></a><img src="docs/icons/palette.svg" width="26" align="center"> Сцены и эффекты
 
 Контроллеры не показывают ~90 эффектов Gyver. Обход: **цвет + яркость → эффект**. Мост сам выбирает `EFF` и `SPD`.
 
 | Сценарий | Цвет (оттенок) | Яркость | Эффект |
 |:---------|:---------------|--------:|:-------|
-| 🕯 Свеча | 30° (оранжевый) | 25% | Flame |
-| 🔥 Огонь | 0° (красный) | 40% | Fire 2021 |
-| 🌊 Океан | 200° | 45% | Ocean |
-| 🌌 Полярное сияние | 160° | 50% | Northern lights |
-| 🌙 Ночь | 220° (синий) | 20% | Shadows |
+| Свеча | 30° (оранжевый) | 25% | Flame |
+| Огонь | 0° (красный) | 40% | Fire 2021 |
+| Океан | 200° | 45% | Ocean |
+| Полярное сияние | 160° | 50% | Northern lights |
+| Ночь | 220° (синий) | 20% | Shadows |
 
 Мост выбирает эффект, если оттенок попал в ±15°, а яркость — примерно в ±7 п.п. от значения в таблице. Низкая насыщенность (белый, серый) даёт эффект `0` — белый свет. Яркость всегда уходит как `BRI`. Полный список — в таблице сцен ниже.
 
 - Таблица сцен: [`ALICE_SCENES.md`](matter-bridge/ALICE_SCENES.md) · [EN](matter-bridge/ALICE_SCENES.en.md)
 - Правка: [`matter-bridge/main/gyver_scenes.c`](matter-bridge/main/gyver_scenes.c)
 
-## 🖥 Веб-пульт
+## <a id="web"></a><img src="docs/icons/monitor.svg" width="26" align="center"> Веб-пульт
 
 ```bash
 cd web
@@ -139,7 +139,7 @@ python3 -m http.server 8765
 - Для UDP запусти `python3 web_proxy.py` и поставь `LAMP_NET_MODE 0U` на лампе.
 - Открывай страницу с `http://localhost`: из файла (`file://`) браузер не отдаёт микрофон.
 
-## ⚠️ Ограничения
+## <img src="docs/icons/alert.svg" width="26" align="center"> Ограничения
 
 - Алиса и Apple Home не показывают названия ~90 эффектов Gyver — только цвет, яркость и включение (см. сцены).
 - Тестовые Vendor ID / PID не подходят для продажи устройств.
@@ -147,7 +147,7 @@ python3 -m http.server 8765
 - Только 2.4 ГГц Wi‑Fi.
 - Мост Tasmota не содержит полной таблицы сцен.
 
-## 🛒 Комплектующие
+## <img src="docs/icons/cart.svg" width="26" align="center"> Комплектующие
 
 Ссылки на Ozon могут устареть — ориентируйся по названию.
 
@@ -160,7 +160,7 @@ python3 -m http.server 8765
 
 <sub>Почему отдельная прошивка под C3 (RISC‑V, FastLED): классический gunner47 под Xtensa на C3 не собирается как надо, в `lamp/gunner47_v2.87in1/` лежит адаптированная линия. Подробности — `PATCH_FASTLED.md` и `UPDATE_FASTLED.md` рядом со скетчем.</sub>
 
-## 🛠 Если что-то не так
+## <img src="docs/icons/wrench.svg" width="26" align="center"> Если что-то не так
 
 | Симптом | Что проверить |
 |:--------|:--------------|
@@ -173,16 +173,16 @@ python3 -m http.server 8765
 
 Подробнее: [`matter-bridge/README.md`](matter-bridge/README.md), [`tasmota-bridge/README.md`](tasmota-bridge/README.md).
 
-## 🙌 Участие
+## <img src="docs/icons/users.svg" width="26" align="center"> Участие
 
 Новый эффект или сцену добавляй в существующие файлы (`effects.ino`, `gyver_scenes.c` + таблицы сцен), а не отдельным файлом на эффект. Правишь `README.md` — обнови и `README.en.md`.
 
-## 🤝 Лицензия и благодарности
+## <img src="docs/icons/scale.svg" width="26" align="center"> Лицензия и благодарности
 
 Код репозитория (мост, документация, доработки) — [MIT](LICENSE), © 2026 Anzor Magomedov.
 
 База лампы — **gunner47 / [GyverLamp](https://github.com/AlexGyver/GyverLamp)**. У `esp-matter` и прочих зависимостей свои лицензии.
 
-## 🤖 Для ИИ-агентов
+## <img src="docs/icons/bot.svg" width="26" align="center"> Для ИИ-агентов
 
 [`llms.txt`](llms.txt) · [`llms.ru.txt`](llms.ru.txt) · [`AGENTS.md`](AGENTS.md) · [`AGENTS.ru.md`](AGENTS.ru.md)

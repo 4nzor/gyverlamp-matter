@@ -1,6 +1,6 @@
 <div align="center">
 
-# 💡 GyverLamp + Matter
+# GyverLamp + Matter
 
 **"Alice, turn on the lamp." "Hey Siri, make the lamp blue."**
 Put a Gyver lamp in **Yandex Alice** and **Apple Home** over Matter — no Home Assistant, no cloud glue, no custom skills.
@@ -11,32 +11,32 @@ Put a Gyver lamp in **Yandex Alice** and **Apple Home** over Matter — no Home 
 [![ESP32](https://img.shields.io/badge/ESP32--C6%20%7C%20S3%20%7C%20C3-E7352C?style=for-the-badge&logo=espressif&logoColor=white)](https://www.espressif.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
-[Русский](README.md) · [What you need](#-what-you-need) · [Quick start](#-quick-start) · [Which bridge?](#-which-bridge) · [Scenes](#-scenes-and-effects) · [Web panel](#-web-panel)
+[Русский](README.md) · [What you need](#needs) · [Quick start](#start) · [Which bridge?](#bridge) · [Scenes](#scenes) · [Web panel](#web)
 
 </div>
 
 ---
 
-## ✨ What you get
+## <img src="docs/icons/sparkles.svg" width="26" align="center"> What you get
 
-- 🗣 **Voice control:** on/off, brightness and color through Alice and Siri.
-- 🍏 **Apple Home and Alice's smart home:** one Matter device is visible to both ecosystems and to any other Matter controller.
-- 🚫 **No Home Assistant:** the bridge is a single ESP32 board.
-- 🎨 **Scenes instead of 90 effects:** controllers cannot list Gyver effect names, so "color + brightness" is mapped to the right `EFF` (the scene table lives in one file).
-- 🧰 **Two bridges to choose from:** with ESP-IDF or without it (Tasmota + Berry).
-- 🌐 **Web panel included:** control from a browser, draw a mic or tab-audio spectrum on the matrix.
+- **Voice control:** on/off, brightness and color through Alice and Siri.
+- **Apple Home and Alice's smart home:** one Matter device is visible to both ecosystems and to any other Matter controller.
+- **No Home Assistant:** the bridge is a single ESP32 board.
+- **Scenes instead of 90 effects:** controllers cannot list Gyver effect names, so "color + brightness" is mapped to the right `EFF` (the scene table lives in one file).
+- **Two bridges to choose from:** with ESP-IDF or without it (Tasmota + Berry).
+- **Web panel included:** control from a browser, draw a mic or tab-audio spectrum on the matrix.
 
-## 🧩 How it works
+## <img src="docs/icons/flow.svg" width="26" align="center"> How it works
 
 ```mermaid
 flowchart LR
-    A["🗣 Alice<br/>Apple Home"] -- Matter --> B["📡 Bridge<br/>ESP32-C6 / S3"]
-    B -- "UDP :8888" --> C["💡 Lamp<br/>ESP32-C3 + 16×16"]
+    A["Alice<br/>Apple Home"] -- Matter --> B["Bridge<br/>ESP32-C6 / S3"]
+    B -- "UDP :8888" --> C["Lamp<br/>ESP32-C3 + 16×16"]
 ```
 
 The bridge shows up to controllers as a Matter light (Extended Color Light, Hue/Saturation color) and translates commands into the Gyver protocol: `P_ON`, `P_OFF`, `BRI`, `SPD`, `EFF`.
 
-## 📦 What's in the repo
+## <img src="docs/icons/folder.svg" width="26" align="center"> What's in the repo
 
 | Path | Role |
 |:-----|:-----|
@@ -45,20 +45,20 @@ The bridge shows up to controllers as a Matter light (Extended Color Light, Hue/
 | [`tasmota-bridge/`](tasmota-bridge/) | **Tasmota + Berry** bridge (no IDF) |
 | [`web/`](web/) | Web panel: UDP via proxy or WebSocket `:81` |
 
-## 🔀 Which bridge?
+## <a id="bridge"></a><img src="docs/icons/split.svg" width="26" align="center"> Which bridge?
 
-| | 🟢 [Tasmota](tasmota-bridge/README.en.md) | 🔵 [esp-matter](matter-bridge/README.en.md) |
+| | [Tasmota](tasmota-bridge/README.en.md) | [esp-matter](matter-bridge/README.en.md) |
 |:--|:--|:--|
 | Needs ESP-IDF | no | yes (v5.5.x) |
 | Setup | flash Tasmota → upload `autoexec.be` | build and flash with IDF |
-| Scene table | — (only red → fire, green/blue → next effect) | ✅ `gyver_scenes.c` |
-| Alice pairing | works, less reliable | ✅ primary path |
-| Hack the C++ bridge | — | ✅ |
+| Scene table | — (only red → fire, green/blue → next effect) | `gyver_scenes.c` |
+| Alice pairing | works, less reliable | primary path |
+| Hack the C++ bridge | — | yes |
 | Best for | fast start | customization, scenes |
 
 > Struggling with ESP-IDF? Use Tasmota. Want scenes and the most reliable Alice pairing? Use esp-matter.
 
-## 🧾 What you need
+## <a id="needs"></a><img src="docs/icons/checklist.svg" width="26" align="center"> What you need
 
 | | |
 |:--|:--|
@@ -69,7 +69,7 @@ The bridge shows up to controllers as a Matter light (Extended Color Light, Hue/
 | Tasmota bridge | a browser and the [web installer](https://tasmota.github.io/install/) |
 | Controller | Alice (smart home) or Apple Home (hub: HomePod / Apple TV / iPad) |
 
-## 🚀 Quick start
+## <a id="start"></a><img src="docs/icons/rocket.svg" width="26" align="center"> Quick start
 
 1. **Build the lamp.** A 16×16 matrix on ESP32‑C3. Set `LAMP_NET_MODE (0U)` in `Constants.h` — the bridge talks to the lamp over UDP only. Flash [`lamp/gunner47_v2.87in1/`](lamp/gunner47_v2.87in1/) from Arduino IDE (folder name must match the `.ino`). Data → `LED_PIN` in `Constants.h` (default **4**). Power the matrix from a **5 V / 3–5 A** PSU, not the board's USB.
 2. **Set the lamp's Wi‑Fi.**
@@ -93,7 +93,7 @@ The bridge gets Wi‑Fi during commissioning — do not hardcode CHIP `DEFAULT_W
 > **Lamp transport.** It is set by `LAMP_NET_MODE` in `lamp/gunner47_v2.87in1/Constants.h`. This tree ships with `1U` (WebSocket `ws://<ip>:81`), but **the Matter bridge speaks UDP only** — with `1U` the lamp will not hear it. For the bridge, Alice, Apple Home and the Gyver app set **`0U`** (UDP `:8888`) and re-flash the lamp.
 
 <details>
-<summary><b>🔑 Pairing codes (esp-matter demo)</b></summary>
+<summary><b>Pairing codes (esp-matter demo)</b></summary>
 
 | | |
 |:--|:--|
@@ -109,24 +109,24 @@ VID `0xFFF1` is the Matter test Vendor ID: fine for personal use, not for sellin
 
 </details>
 
-## 🎨 Scenes and effects
+## <a id="scenes"></a><img src="docs/icons/palette.svg" width="26" align="center"> Scenes and effects
 
 Controllers do not expose ~90 Gyver effect names. Workaround: **color + brightness → effect**. The bridge picks `EFF` and `SPD` itself.
 
 | Scene | Color (hue) | Brightness | Effect |
 |:------|:------------|-----------:|:-------|
-| 🕯 Candle | 30° (orange) | 25% | Flame |
-| 🔥 Fire | 0° (red) | 40% | Fire 2021 |
-| 🌊 Ocean | 200° | 45% | Ocean |
-| 🌌 Aurora | 160° | 50% | Northern lights |
-| 🌙 Night | 220° (blue) | 20% | Shadows |
+| Candle | 30° (orange) | 25% | Flame |
+| Fire | 0° (red) | 40% | Fire 2021 |
+| Ocean | 200° | 45% | Ocean |
+| Aurora | 160° | 50% | Northern lights |
+| Night | 220° (blue) | 20% | Shadows |
 
 The bridge picks an effect when hue is within ±15° and brightness within ~±7 pp of the table value. Low saturation (white, grey) gives effect `0` — white light. Brightness is always sent as `BRI`. The full list is in the scene table below.
 
 - Scene table: [`ALICE_SCENES.en.md`](matter-bridge/ALICE_SCENES.en.md) · [RU](matter-bridge/ALICE_SCENES.md)
 - Edit: [`matter-bridge/main/gyver_scenes.c`](matter-bridge/main/gyver_scenes.c)
 
-## 🖥 Web panel
+## <a id="web"></a><img src="docs/icons/monitor.svg" width="26" align="center"> Web panel
 
 ```bash
 cd web
@@ -139,7 +139,7 @@ python3 -m http.server 8765
 - For UDP run `python3 web_proxy.py` and set `LAMP_NET_MODE 0U` on the lamp.
 - Open the page from `http://localhost`: a `file://` page cannot use the microphone.
 
-## ⚠️ Limitations
+## <img src="docs/icons/alert.svg" width="26" align="center"> Limitations
 
 - Alice and Apple Home do not expose the ~90 Gyver effect names — only color, brightness and power (hence scenes).
 - Test Vendor ID / PID are not suitable for selling devices.
@@ -147,7 +147,7 @@ python3 -m http.server 8765
 - 2.4 GHz Wi‑Fi only.
 - The Tasmota bridge does not include the full scene table.
 
-## 🛒 Parts
+## <img src="docs/icons/cart.svg" width="26" align="center"> Parts
 
 Ozon links may go stale — search by product name.
 
@@ -160,7 +160,7 @@ Ozon links may go stale — search by product name.
 
 <sub>Why a separate C3 firmware line (RISC‑V, FastLED): classic gunner47 for Xtensa does not build cleanly on C3; `lamp/gunner47_v2.87in1/` is the adapted line. Details: `PATCH_FASTLED.md` and `UPDATE_FASTLED.md` next to the sketch.</sub>
 
-## 🛠 Troubleshooting
+## <img src="docs/icons/wrench.svg" width="26" align="center"> Troubleshooting
 
 | Symptom | Check |
 |:--------|:------|
@@ -173,16 +173,16 @@ Ozon links may go stale — search by product name.
 
 More detail: [`matter-bridge/README.en.md`](matter-bridge/README.en.md), [`tasmota-bridge/README.en.md`](tasmota-bridge/README.en.md).
 
-## 🙌 Contributing
+## <img src="docs/icons/users.svg" width="26" align="center"> Contributing
 
 Add a new effect or scene to the existing files (`effects.ino`, `gyver_scenes.c` + scene tables) — not one file per effect. If you change `README.en.md`, update `README.md` too.
 
-## 🤝 License and credits
+## <img src="docs/icons/scale.svg" width="26" align="center"> License and credits
 
 This repo's bridge, docs and modifications — [MIT](LICENSE), © 2026 Anzor Magomedov.
 
 Lamp base is **gunner47 / [GyverLamp](https://github.com/AlexGyver/GyverLamp)**. `esp-matter` and other deps keep their own licenses.
 
-## 🤖 For AI agents
+## <img src="docs/icons/bot.svg" width="26" align="center"> For AI agents
 
 [`llms.txt`](llms.txt) · [`llms-full.txt`](llms-full.txt) · [`AGENTS.md`](AGENTS.md) · Russian: [`llms.ru.txt`](llms.ru.txt), [`AGENTS.ru.md`](AGENTS.ru.md)
