@@ -17,7 +17,7 @@
 
 ---
 
-## <img src="docs/icons/sparkles.svg" width="26" align="center"> Что получаешь
+## <img src="docs/icons/sparkles.svg" width="26" align="absmiddle"> Что получаешь
 
 - **Голос:** включение, яркость и цвет через Алису и Siri.
 - **Apple Home и «Дом с Алисой»:** одно Matter-устройство видят обе экосистемы и любые другие Matter-контроллеры.
@@ -26,7 +26,7 @@
 - **Два моста на выбор:** с ESP-IDF и без него (Tasmota + Berry).
 - **Веб-пульт в комплекте:** управление из браузера, спектр с микрофона или звука вкладки на матрице.
 
-## <img src="docs/icons/flow.svg" width="26" align="center"> Как это работает
+## <img src="docs/icons/flow.svg" width="26" align="absmiddle"> Как это работает
 
 ```mermaid
 flowchart LR
@@ -36,7 +36,7 @@ flowchart LR
 
 Мост показывается контроллерам как Matter-лампа (Extended Color Light, цвет по Hue/Saturation) и переводит команды в протокол Gyver: `P_ON`, `P_OFF`, `BRI`, `SPD`, `EFF`.
 
-## <img src="docs/icons/folder.svg" width="26" align="center"> Что в репозитории
+## <img src="docs/icons/folder.svg" width="26" align="absmiddle"> Что в репозитории
 
 | Папка | Зачем |
 |:------|:------|
@@ -45,7 +45,7 @@ flowchart LR
 | [`tasmota-bridge/`](tasmota-bridge/) | Мост на **Tasmota + Berry** (без IDF) |
 | [`web/`](web/) | Веб-пульт: UDP через прокси или WebSocket `:81` |
 
-## <a id="bridge"></a><img src="docs/icons/split.svg" width="26" align="center"> Какой мост выбрать
+## <a id="bridge"></a><img src="docs/icons/split.svg" width="26" align="absmiddle"> Какой мост выбрать
 
 | | [Tasmota](tasmota-bridge/README.md) | [esp-matter](matter-bridge/README.md) |
 |:--|:--|:--|
@@ -58,7 +58,7 @@ flowchart LR
 
 > Не получается с ESP-IDF — бери Tasmota. Нужны сцены и стабильная Алиса — esp-matter.
 
-## <a id="needs"></a><img src="docs/icons/checklist.svg" width="26" align="center"> Что нужно
+## <a id="needs"></a><img src="docs/icons/checklist.svg" width="26" align="absmiddle"> Что нужно
 
 | | |
 |:--|:--|
@@ -69,7 +69,7 @@ flowchart LR
 | Мост Tasmota | только браузер и [веб-установщик](https://tasmota.github.io/install/) |
 | Контроллер | Алиса («Дом с Алисой») или Apple Home (хаб: HomePod / Apple TV / iPad) |
 
-## <a id="start"></a><img src="docs/icons/rocket.svg" width="26" align="center"> Быстрый старт
+## <a id="start"></a><img src="docs/icons/rocket.svg" width="26" align="absmiddle"> Быстрый старт
 
 1. **Собери лампу.** Матрица 16×16 на ESP32‑C3. В `Constants.h` поставь `LAMP_NET_MODE (0U)` — мост говорит с лампой только по UDP. Прошей [`lamp/gunner47_v2.87in1/`](lamp/gunner47_v2.87in1/) из Arduino IDE (имя папки = имя `.ino`). Data → `LED_PIN` в `Constants.h` (по умолчанию **4**). Питание матрицы — от БП **5 В / 3–5 А**, не от USB платы.
 2. **Пропиши Wi‑Fi лампы.**
@@ -109,7 +109,7 @@ VID `0xFFF1` — тестовый Vendor ID из стандарта Matter: го
 
 </details>
 
-## <a id="scenes"></a><img src="docs/icons/palette.svg" width="26" align="center"> Сцены и эффекты
+## <a id="scenes"></a><img src="docs/icons/palette.svg" width="26" align="absmiddle"> Сцены и эффекты
 
 Контроллеры не показывают ~90 эффектов Gyver. Обход: **цвет + яркость → эффект**. Мост сам выбирает `EFF` и `SPD`.
 
@@ -126,7 +126,7 @@ VID `0xFFF1` — тестовый Vendor ID из стандарта Matter: го
 - Таблица сцен: [`ALICE_SCENES.md`](matter-bridge/ALICE_SCENES.md) · [EN](matter-bridge/ALICE_SCENES.en.md)
 - Правка: [`matter-bridge/main/gyver_scenes.c`](matter-bridge/main/gyver_scenes.c)
 
-## <a id="web"></a><img src="docs/icons/monitor.svg" width="26" align="center"> Веб-пульт
+## <a id="web"></a><img src="docs/icons/monitor.svg" width="26" align="absmiddle"> Веб-пульт
 
 ```bash
 cd web
@@ -139,7 +139,7 @@ python3 -m http.server 8765
 - Для UDP запусти `python3 web_proxy.py` и поставь `LAMP_NET_MODE 0U` на лампе.
 - Открывай страницу с `http://localhost`: из файла (`file://`) браузер не отдаёт микрофон.
 
-## <img src="docs/icons/alert.svg" width="26" align="center"> Ограничения
+## <img src="docs/icons/alert.svg" width="26" align="absmiddle"> Ограничения
 
 - Алиса и Apple Home не показывают названия ~90 эффектов Gyver — только цвет, яркость и включение (см. сцены).
 - Тестовые Vendor ID / PID не подходят для продажи устройств.
@@ -147,7 +147,7 @@ python3 -m http.server 8765
 - Только 2.4 ГГц Wi‑Fi.
 - Мост Tasmota не содержит полной таблицы сцен.
 
-## <img src="docs/icons/cart.svg" width="26" align="center"> Комплектующие
+## <img src="docs/icons/cart.svg" width="26" align="absmiddle"> Комплектующие
 
 Ссылки на Ozon могут устареть — ориентируйся по названию.
 
@@ -160,7 +160,7 @@ python3 -m http.server 8765
 
 <sub>Почему отдельная прошивка под C3 (RISC‑V, FastLED): классический gunner47 под Xtensa на C3 не собирается как надо, в `lamp/gunner47_v2.87in1/` лежит адаптированная линия. Подробности — `PATCH_FASTLED.md` и `UPDATE_FASTLED.md` рядом со скетчем.</sub>
 
-## <img src="docs/icons/wrench.svg" width="26" align="center"> Если что-то не так
+## <img src="docs/icons/wrench.svg" width="26" align="absmiddle"> Если что-то не так
 
 | Симптом | Что проверить |
 |:--------|:--------------|
@@ -173,16 +173,16 @@ python3 -m http.server 8765
 
 Подробнее: [`matter-bridge/README.md`](matter-bridge/README.md), [`tasmota-bridge/README.md`](tasmota-bridge/README.md).
 
-## <img src="docs/icons/users.svg" width="26" align="center"> Участие
+## <img src="docs/icons/users.svg" width="26" align="absmiddle"> Участие
 
 Новый эффект или сцену добавляй в существующие файлы (`effects.ino`, `gyver_scenes.c` + таблицы сцен), а не отдельным файлом на эффект. Правишь `README.md` — обнови и `README.en.md`.
 
-## <img src="docs/icons/scale.svg" width="26" align="center"> Лицензия и благодарности
+## <img src="docs/icons/scale.svg" width="26" align="absmiddle"> Лицензия и благодарности
 
 Код репозитория (мост, документация, доработки) — [MIT](LICENSE), © 2026 Anzor Magomedov.
 
 База лампы — **gunner47 / [GyverLamp](https://github.com/AlexGyver/GyverLamp)**. У `esp-matter` и прочих зависимостей свои лицензии.
 
-## <img src="docs/icons/bot.svg" width="26" align="center"> Для ИИ-агентов
+## <img src="docs/icons/bot.svg" width="26" align="absmiddle"> Для ИИ-агентов
 
 [`llms.txt`](llms.txt) · [`llms.ru.txt`](llms.ru.txt) · [`AGENTS.md`](AGENTS.md) · [`AGENTS.ru.md`](AGENTS.ru.md)

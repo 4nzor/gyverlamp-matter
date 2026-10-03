@@ -17,7 +17,7 @@ Put a Gyver lamp in **Yandex Alice** and **Apple Home** over Matter — no Home 
 
 ---
 
-## <img src="docs/icons/sparkles.svg" width="26" align="center"> What you get
+## <img src="docs/icons/sparkles.svg" width="26" align="absmiddle"> What you get
 
 - **Voice control:** on/off, brightness and color through Alice and Siri.
 - **Apple Home and Alice's smart home:** one Matter device is visible to both ecosystems and to any other Matter controller.
@@ -26,7 +26,7 @@ Put a Gyver lamp in **Yandex Alice** and **Apple Home** over Matter — no Home 
 - **Two bridges to choose from:** with ESP-IDF or without it (Tasmota + Berry).
 - **Web panel included:** control from a browser, draw a mic or tab-audio spectrum on the matrix.
 
-## <img src="docs/icons/flow.svg" width="26" align="center"> How it works
+## <img src="docs/icons/flow.svg" width="26" align="absmiddle"> How it works
 
 ```mermaid
 flowchart LR
@@ -36,7 +36,7 @@ flowchart LR
 
 The bridge shows up to controllers as a Matter light (Extended Color Light, Hue/Saturation color) and translates commands into the Gyver protocol: `P_ON`, `P_OFF`, `BRI`, `SPD`, `EFF`.
 
-## <img src="docs/icons/folder.svg" width="26" align="center"> What's in the repo
+## <img src="docs/icons/folder.svg" width="26" align="absmiddle"> What's in the repo
 
 | Path | Role |
 |:-----|:-----|
@@ -45,7 +45,7 @@ The bridge shows up to controllers as a Matter light (Extended Color Light, Hue/
 | [`tasmota-bridge/`](tasmota-bridge/) | **Tasmota + Berry** bridge (no IDF) |
 | [`web/`](web/) | Web panel: UDP via proxy or WebSocket `:81` |
 
-## <a id="bridge"></a><img src="docs/icons/split.svg" width="26" align="center"> Which bridge?
+## <a id="bridge"></a><img src="docs/icons/split.svg" width="26" align="absmiddle"> Which bridge?
 
 | | [Tasmota](tasmota-bridge/README.en.md) | [esp-matter](matter-bridge/README.en.md) |
 |:--|:--|:--|
@@ -58,7 +58,7 @@ The bridge shows up to controllers as a Matter light (Extended Color Light, Hue/
 
 > Struggling with ESP-IDF? Use Tasmota. Want scenes and the most reliable Alice pairing? Use esp-matter.
 
-## <a id="needs"></a><img src="docs/icons/checklist.svg" width="26" align="center"> What you need
+## <a id="needs"></a><img src="docs/icons/checklist.svg" width="26" align="absmiddle"> What you need
 
 | | |
 |:--|:--|
@@ -69,7 +69,7 @@ The bridge shows up to controllers as a Matter light (Extended Color Light, Hue/
 | Tasmota bridge | a browser and the [web installer](https://tasmota.github.io/install/) |
 | Controller | Alice (smart home) or Apple Home (hub: HomePod / Apple TV / iPad) |
 
-## <a id="start"></a><img src="docs/icons/rocket.svg" width="26" align="center"> Quick start
+## <a id="start"></a><img src="docs/icons/rocket.svg" width="26" align="absmiddle"> Quick start
 
 1. **Build the lamp.** A 16×16 matrix on ESP32‑C3. Set `LAMP_NET_MODE (0U)` in `Constants.h` — the bridge talks to the lamp over UDP only. Flash [`lamp/gunner47_v2.87in1/`](lamp/gunner47_v2.87in1/) from Arduino IDE (folder name must match the `.ino`). Data → `LED_PIN` in `Constants.h` (default **4**). Power the matrix from a **5 V / 3–5 A** PSU, not the board's USB.
 2. **Set the lamp's Wi‑Fi.**
@@ -109,7 +109,7 @@ VID `0xFFF1` is the Matter test Vendor ID: fine for personal use, not for sellin
 
 </details>
 
-## <a id="scenes"></a><img src="docs/icons/palette.svg" width="26" align="center"> Scenes and effects
+## <a id="scenes"></a><img src="docs/icons/palette.svg" width="26" align="absmiddle"> Scenes and effects
 
 Controllers do not expose ~90 Gyver effect names. Workaround: **color + brightness → effect**. The bridge picks `EFF` and `SPD` itself.
 
@@ -126,7 +126,7 @@ The bridge picks an effect when hue is within ±15° and brightness within ~±7 
 - Scene table: [`ALICE_SCENES.en.md`](matter-bridge/ALICE_SCENES.en.md) · [RU](matter-bridge/ALICE_SCENES.md)
 - Edit: [`matter-bridge/main/gyver_scenes.c`](matter-bridge/main/gyver_scenes.c)
 
-## <a id="web"></a><img src="docs/icons/monitor.svg" width="26" align="center"> Web panel
+## <a id="web"></a><img src="docs/icons/monitor.svg" width="26" align="absmiddle"> Web panel
 
 ```bash
 cd web
@@ -139,7 +139,7 @@ python3 -m http.server 8765
 - For UDP run `python3 web_proxy.py` and set `LAMP_NET_MODE 0U` on the lamp.
 - Open the page from `http://localhost`: a `file://` page cannot use the microphone.
 
-## <img src="docs/icons/alert.svg" width="26" align="center"> Limitations
+## <img src="docs/icons/alert.svg" width="26" align="absmiddle"> Limitations
 
 - Alice and Apple Home do not expose the ~90 Gyver effect names — only color, brightness and power (hence scenes).
 - Test Vendor ID / PID are not suitable for selling devices.
@@ -147,7 +147,7 @@ python3 -m http.server 8765
 - 2.4 GHz Wi‑Fi only.
 - The Tasmota bridge does not include the full scene table.
 
-## <img src="docs/icons/cart.svg" width="26" align="center"> Parts
+## <img src="docs/icons/cart.svg" width="26" align="absmiddle"> Parts
 
 Ozon links may go stale — search by product name.
 
@@ -160,7 +160,7 @@ Ozon links may go stale — search by product name.
 
 <sub>Why a separate C3 firmware line (RISC‑V, FastLED): classic gunner47 for Xtensa does not build cleanly on C3; `lamp/gunner47_v2.87in1/` is the adapted line. Details: `PATCH_FASTLED.md` and `UPDATE_FASTLED.md` next to the sketch.</sub>
 
-## <img src="docs/icons/wrench.svg" width="26" align="center"> Troubleshooting
+## <img src="docs/icons/wrench.svg" width="26" align="absmiddle"> Troubleshooting
 
 | Symptom | Check |
 |:--------|:------|
@@ -173,16 +173,16 @@ Ozon links may go stale — search by product name.
 
 More detail: [`matter-bridge/README.en.md`](matter-bridge/README.en.md), [`tasmota-bridge/README.en.md`](tasmota-bridge/README.en.md).
 
-## <img src="docs/icons/users.svg" width="26" align="center"> Contributing
+## <img src="docs/icons/users.svg" width="26" align="absmiddle"> Contributing
 
 Add a new effect or scene to the existing files (`effects.ino`, `gyver_scenes.c` + scene tables) — not one file per effect. If you change `README.en.md`, update `README.md` too.
 
-## <img src="docs/icons/scale.svg" width="26" align="center"> License and credits
+## <img src="docs/icons/scale.svg" width="26" align="absmiddle"> License and credits
 
 This repo's bridge, docs and modifications — [MIT](LICENSE), © 2026 Anzor Magomedov.
 
 Lamp base is **gunner47 / [GyverLamp](https://github.com/AlexGyver/GyverLamp)**. `esp-matter` and other deps keep their own licenses.
 
-## <img src="docs/icons/bot.svg" width="26" align="center"> For AI agents
+## <img src="docs/icons/bot.svg" width="26" align="absmiddle"> For AI agents
 
 [`llms.txt`](llms.txt) · [`llms-full.txt`](llms-full.txt) · [`AGENTS.md`](AGENTS.md) · Russian: [`llms.ru.txt`](llms.ru.txt), [`AGENTS.ru.md`](AGENTS.ru.md)
