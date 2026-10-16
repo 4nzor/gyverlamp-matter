@@ -1,4 +1,5 @@
 #include <time.h>
+#include "ParseUtil.h"
 
 // Макрос для watchdog feed (ESP8266 использует ESP.wdtFeed(), ESP32 использует yield())
 // WDT_FEED теперь определен в gunner47_v2.87in1.ino перед setup()
@@ -24,7 +25,8 @@ void parseUDP()
 
   if (packetSize)
   {
-    int16_t n = Udp.read(packetBuffer, MAX_UDP_BUFFER_SIZE);
+    int16_t n = Udp.read(packetBuffer, MAX_UDP_BUFFER_SIZE - 1);   // -1: место под завершающий ноль
+    if (n < 0) n = 0;
     packetBuffer[n] = '\0';
     strcpy(inputBuffer, packetBuffer);
     WDT_FEED();
@@ -133,7 +135,7 @@ if (!strncmp_P(inputBuffer, PSTR("GET"), 3))
 }
     else if (!strncmp_P(inputBuffer, PSTR("BRI"), 3))
     {
-      memcpy(buff, &inputBuffer[3], strlen(inputBuffer));   // взять подстроку, состоящую последних символов строки inputBuffer, начиная с символа 4
+      copyArg(buff, sizeof(buff), inputBuffer, 3);   // взять подстроку, состоящую последних символов строки inputBuffer, начиная с символа 4
       modes[currentMode].Brightness = constrain(atoi(buff), 1, 255);
       FastLED.setBrightness(modes[currentMode].Brightness);
       updateSets();
@@ -144,7 +146,7 @@ if (!strncmp_P(inputBuffer, PSTR("GET"), 3))
     }
     else if (!strncmp_P(inputBuffer, PSTR("SPD"), 3))
     {
-      memcpy(buff, &inputBuffer[3], strlen(inputBuffer));   // взять подстроку, состоящую последних символов строки inputBuffer, начиная с символа 4
+      copyArg(buff, sizeof(buff), inputBuffer, 3);   // взять подстроку, состоящую последних символов строки inputBuffer, начиная с символа 4
       modes[currentMode].Speed = atoi(buff);
       updateSets();
       sendCurrent(inputBuffer);
@@ -155,7 +157,7 @@ if (!strncmp_P(inputBuffer, PSTR("GET"), 3))
 
     else if (!strncmp_P(inputBuffer, PSTR("SCA"), 3))
     {
-      memcpy(buff, &inputBuffer[3], strlen(inputBuffer));   // взять подстроку, состоящую последних символов строки inputBuffer, начиная с символа 4
+      copyArg(buff, sizeof(buff), inputBuffer, 3);   // взять подстроку, состоящую последних символов строки inputBuffer, начиная с символа 4
       modes[currentMode].Scale = atoi(buff);
       updateSets();
       sendCurrent(inputBuffer);
@@ -166,7 +168,7 @@ if (!strncmp_P(inputBuffer, PSTR("GET"), 3))
 
     else if (!strncmp_P(inputBuffer, PSTR("EFF"), 3))
     {
-      memcpy(buff, &inputBuffer[3], strlen(inputBuffer));   // взять подстроку, состоящую последних символов строки inputBuffer, начиная с символа 4
+      copyArg(buff, sizeof(buff), inputBuffer, 3);   // взять подстроку, состоящую последних символов строки inputBuffer, начиная с символа 4
       uint8_t newMode = atoi(buff);
       if (newMode < MODE_AMOUNT)
       {
@@ -228,33 +230,39 @@ if (!strncmp_P(inputBuffer, PSTR("GET"), 3))
     else if (!strncmp_P(inputBuffer, PSTR("ALM_"), 4)) { // сокращаем GET и SET для ускорения регулярного цикла
       if (!strncmp_P(inputBuffer, PSTR("ALM_SET"), 7))
       {
-        uint8_t alarmNum = (char)inputBuffer[7] - '0';
-        alarmNum -= 1;
-        if (strstr_P(inputBuffer, PSTR("ON")) - inputBuffer == 9)
+        uint8_t alarmNum = 0;
+        if (!parseAlarmIndex((char)inputBuffer[7], sizeof(alarms) / sizeof(alarms[0]), &alarmNum))
         {
-          alarms[alarmNum].State = true;
-          sendAlarms(inputBuffer);
-        }
-        else if (strstr_P(inputBuffer, PSTR("OFF")) - inputBuffer == 9)
-        {
-          alarms[alarmNum].State = false;
-          sendAlarms(inputBuffer);
+          sendAlarms(inputBuffer);                          // некорректный номер будильника: ничего не меняем
         }
         else
         {
-          memcpy(buff, &inputBuffer[8], strlen(inputBuffer)); // взять подстроку, состоящую последних символов строки inputBuffer, начиная с символа 9
-          alarms[alarmNum].Time = atoi(buff);
-          sendAlarms(inputBuffer);
-        }
-        EepromManager::SaveAlarmsSettings(&alarmNum, alarms);
+          if (strstr_P(inputBuffer, PSTR("ON")) - inputBuffer == 9)
+          {
+            alarms[alarmNum].State = true;
+            sendAlarms(inputBuffer);
+          }
+          else if (strstr_P(inputBuffer, PSTR("OFF")) - inputBuffer == 9)
+          {
+            alarms[alarmNum].State = false;
+            sendAlarms(inputBuffer);
+          }
+          else
+          {
+            copyArg(buff, sizeof(buff), inputBuffer, 8); // взять подстроку, состоящую последних символов строки inputBuffer, начиная с символа 9
+            alarms[alarmNum].Time = atoi(buff);
+            sendAlarms(inputBuffer);
+          }
+          EepromManager::SaveAlarmsSettings(&alarmNum, alarms);
 
-        #if (USE_MQTT)
-        if (espMode == 1U)
-        {
-          strcpy(MqttManager::mqttBuffer, inputBuffer);
-          MqttManager::needToPublish = true;
+          #if (USE_MQTT)
+          if (espMode == 1U)
+          {
+            strcpy(MqttManager::mqttBuffer, inputBuffer);
+            MqttManager::needToPublish = true;
+          }
+          #endif
         }
-        #endif
       }
       else
         sendAlarms(inputBuffer);
@@ -262,7 +270,7 @@ if (!strncmp_P(inputBuffer, PSTR("GET"), 3))
 
     else if (!strncmp_P(inputBuffer, PSTR("DAWN"), 4))
     {
-      memcpy(buff, &inputBuffer[4], strlen(inputBuffer));   // взять подстроку, состоящую последних символов строки inputBuffer, начиная с символа 5
+      copyArg(buff, sizeof(buff), inputBuffer, 4);   // взять подстроку, состоящую последних символов строки inputBuffer, начиная с символа 5
       dawnMode = atoi(buff) - 1;
       EepromManager::SaveDawnMode(&dawnMode);
       sendAlarms(inputBuffer);
@@ -320,13 +328,13 @@ if (!strncmp_P(inputBuffer, PSTR("GET"), 3))
     else if (!strncmp_P(inputBuffer, PSTR("TMR_"), 4)) { // сокращаем GET и SET для ускорения регулярного цикла
       if (!strncmp_P(inputBuffer, PSTR("TMR_SET"), 7))
       {
-        memcpy(buff, &inputBuffer[8], 2);                     // взять подстроку, состоящую из 9 и 10 символов, из строки inputBuffer
+        copyArgN(buff, sizeof(buff), inputBuffer, 8, 2);                     // взять подстроку, состоящую из 9 и 10 символов, из строки inputBuffer
         TimerManager::TimerRunning = (bool)atoi(buff);
 
-        memcpy(buff, &inputBuffer[10], 2);                    // взять подстроку, состоящую из 11 и 12 символов, из строки inputBuffer
+        copyArgN(buff, sizeof(buff), inputBuffer, 10, 2);                    // взять подстроку, состоящую из 11 и 12 символов, из строки inputBuffer
         TimerManager::TimerOption = (uint8_t)atoi(buff);
 
-        memcpy(buff, &inputBuffer[12], strlen(inputBuffer));  // взять подстроку, состоящую последних символов строки inputBuffer, начиная с символа 13
+        copyArg(buff, sizeof(buff), inputBuffer, 12);  // взять подстроку, состоящую последних символов строки inputBuffer, начиная с символа 13
         TimerManager::TimeToFire = millis() + strtoull(buff, &endToken, 10) * 1000;
 
         #if defined(BUTTON_CAN_SET_SLEEP_TIMER) && defined(ESP_USE_BUTTON)
@@ -418,7 +426,7 @@ if (!strncmp_P(inputBuffer, PSTR("GET"), 3))
     }
     else if (!strncmp_P(inputBuffer, PSTR("GBR"), 3)) // выставляем общую яркость для всех эффектов без сохранения в EEPROM, если приложение присылает такую строку
     {
-      memcpy(buff, &inputBuffer[3], strlen(inputBuffer));   // взять подстроку, состоящую последних символов строки inputBuffer, начиная с символа 4
+      copyArg(buff, sizeof(buff), inputBuffer, 3);   // взять подстроку, состоящую последних символов строки inputBuffer, начиная с символа 4
       uint8_t ALLbri = constrain(atoi(buff), 1, 255);
       for (uint8_t i = 0; i < MODE_AMOUNT; i++) {
         modes[i].Brightness = ALLbri;
@@ -470,7 +478,7 @@ if (!strncmp_P(inputBuffer, PSTR("GET"), 3))
     {
        // Команда LIST отправляет данные напрямую, без использования общего механизма отправки
        // Данные будут отправлены в parseUDP() после вызова processInputBuffer()
-       memcpy(buff, &inputBuffer[4], strlen(inputBuffer));  // взять подстроку, состоящую последних символов строки inputBuffer, начиная с символа 5
+       copyArg(buff, sizeof(buff), inputBuffer, 4);  // взять подстроку, состоящую последних символов строки inputBuffer, начиная с символа 5
        switch (atoi(buff))
          {
            case 1U:
@@ -645,7 +653,7 @@ if (!strncmp_P(inputBuffer, PSTR("GET"), 3))
             }
           }
           else if (!strncmp_P(inputBuffer, PSTR("TXT-dawn="), 9)){
-            memcpy(buff, &inputBuffer[9], strlen(inputBuffer));   // взять подстроку, состоящую последних символов строки inputBuffer, начиная с символа 10
+            copyArg(buff, sizeof(buff), inputBuffer, 9);   // взять подстроку, состоящую последних символов строки inputBuffer, начиная с символа 10
             uint8_t temp = atoi(buff);
             if (temp) {
               //dawnOffsets[dawnMode] PROGMEM = {5, 10, 15, 20, 25, 30, 40, 50, 60};
@@ -673,7 +681,7 @@ if (!strncmp_P(inputBuffer, PSTR("GET"), 3))
             #endif                
           }
           else if (!strncmp_P(inputBuffer, PSTR("TXT-timer="), 10)){
-            memcpy(buff, &inputBuffer[10], strlen(inputBuffer));   // взять подстроку, состоящую последних символов строки inputBuffer, начиная с символа 11
+            copyArg(buff, sizeof(buff), inputBuffer, 10);   // взять подстроку, состоящую последних символов строки inputBuffer, начиная с символа 11
             uint16_t temp = atoi(buff);
             if (ONflag && temp) {
               #if defined(BUTTON_CAN_SET_SLEEP_TIMER) && defined(ESP_USE_BUTTON)
@@ -715,7 +723,7 @@ if (!strncmp_P(inputBuffer, PSTR("GET"), 3))
           #endif //#ifdef RANDOM_SETTINGS_IN_CYCLE_MODE
           #if defined(off_BUTTON_CAN_SET_SLEEP_TIMER) && defined(ESP_USE_BUTTON)
           else if (!strncmp_P(inputBuffer, PSTR("TXT-sleep="), 10)){
-            memcpy(buff, &inputBuffer[10], strlen(inputBuffer));   // взять подстроку, состоящую последних символов строки inputBuffer, начиная с символа 11
+            copyArg(buff, sizeof(buff), inputBuffer, 10);   // взять подстроку, состоящую последних символов строки inputBuffer, начиная с символа 11
             int16_t temp = atoi(buff);
             if (temp > 0 && temp <=255) {
               button_sleep_time = temp;
@@ -799,12 +807,12 @@ if (!strncmp_P(inputBuffer, PSTR("GET"), 3))
 //и в новых тоже появились
     else if (!strncmp_P(inputBuffer, PSTR("SETS"), 4)) // передача настроек эффектов по запросу от приложения (если поддерживается приложением)
     {
-      memcpy(buff, &inputBuffer[4], 1U);  // взять первую циферку из строки inputBuffer, начиная с символа 5
+      copyArgN(buff, sizeof(buff), inputBuffer, 4, 1);  // взять первую циферку из строки inputBuffer, начиная с символа 5
       switch (atoi(buff))      
       {
         case 1U: // SET
           {
-            memcpy(buff, &inputBuffer[5], strlen(inputBuffer));   // inputBuffer, начиная с символа 6
+            copyArg(buff, sizeof(buff), inputBuffer, 5);   // inputBuffer, начиная с символа 6
             uint8_t eff = getValue(buff, ';', 0).toInt();
             modes[eff].Brightness = getValue(buff, ';', 1).toInt();
             modes[eff].Speed = getValue(buff, ';', 2).toInt();

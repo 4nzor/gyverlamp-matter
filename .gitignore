@@ -16,3 +16,4 @@ secrets.env
 lamp/gunner47_v2.87in1/wifi_secrets.h
 matter-bridge/sdkconfig.secrets
 docs/superpowers
+**/host_tests/test_parse_util
